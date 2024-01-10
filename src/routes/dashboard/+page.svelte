@@ -3,8 +3,21 @@
 	export let data: any;
 	import { Button } from "$lib/components/ui/button";
 	import * as Card from "$lib/components/ui/card";
+	import Time from "svelte-time";
 
 	const supabase = data.supabase;
+
+	async function viewFile(filePath: string) {
+		const { data, error } = await supabase.storage
+			.from("files")
+			.getPublicUrl(filePath);
+
+		if (error) {
+			console.log(error);
+		} else {
+			window.open(data.publicUrl);
+		}
+	}
 
 	async function downloadFile(filePath: string) {
 		const { data, error } = await supabase.storage
@@ -45,15 +58,26 @@
 					<Card.Header>
 						<Card.Title class="truncate">{file.name}</Card.Title>
 					</Card.Header>
+					<Card.Content>
+						<Time timestamp={file.created_at} format="hh:mm:ss a" />
+						(<Time timestamp={file.created_at} relative />)
+					</Card.Content>
 					<Card.Footer class="flex justify-between">
 						<Button
 							variant="destructive"
 							on:click={() => deleteFile(file.name)}
 							>Delete</Button
 						>
-						<Button on:click={() => downloadFile(file.name)}
-							>Download</Button
-						>
+						<div class="flex gap-2">
+							<Button on:click={() => viewFile(file.name)}
+								>View</Button
+							>
+							<Button
+								variant="secondary"
+								on:click={() => downloadFile(file.name)}
+								>Download</Button
+							>
+						</div>
 					</Card.Footer>
 				</Card.Root>
 			{/if}

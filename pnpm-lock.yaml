@@ -49,6 +49,9 @@ devDependencies:
   autoprefixer:
     specifier: ^10.4.16
     version: 10.4.16(postcss@8.4.33)
+  dayjs:
+    specifier: ^1.11.10
+    version: 1.11.10
   postcss:
     specifier: ^8.4.32
     version: 8.4.33
@@ -61,6 +64,9 @@ devDependencies:
   svelte-check:
     specifier: ^3.6.2
     version: 3.6.2(postcss-load-config@5.0.2)(postcss@8.4.33)(svelte@4.2.8)
+  svelte-time:
+    specifier: ^0.8.2
+    version: 0.8.2
   tailwindcss:
     specifier: ^3.3.6
     version: 3.4.1
@@ -952,6 +958,10 @@ packages:
     engines: {node: '>=4'}
     hasBin: true
 
+  /dayjs@1.11.10:
+    resolution: {integrity: sha512-vjAczensTgRcqDERK0SR2XMwsF/tSvnvlv6VcF2GIhg6Sx4yOIt/irsr1RDJsKiIyBzJDpCoXiWWq28MqH2cnQ==}
+    dev: true
+
   /debug@4.3.4:
     resolution: {integrity: sha512-PRWFHuSU3eDtQJPvnNY7Jcket1j0t5OuOsFzPPzsekD52Zl8qUfFIPEiswXqIvHWGVHOgX+7G/vCNNhehwxfkQ==}
     engines: {node: '>=6.0'}
@@ -1828,6 +1838,12 @@ packages:
     dependencies:
       svelte: 4.2.8
     dev: false
+
+  /svelte-time@0.8.2:
+    resolution: {integrity: sha512-sBLLrWMMInx5iidGlbtlCBAu8CzSixdqOkbhizdalULXBvYMPACp0GtzmyBLEa77hbaMVySZzApIaNG4B4OVmg==}
+    dependencies:
+      dayjs: 1.11.10
+    dev: true
 
   /svelte@4.2.8:
     resolution: {integrity: sha512-hU6dh1MPl8gh6klQZwK/n73GiAHiR95IkFsesLPbMeEZi36ydaXL/ZAb4g9sayT0MXzpxyZjR28yderJHxcmYA==}
