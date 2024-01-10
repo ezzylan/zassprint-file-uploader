@@ -1,13 +1,16 @@
 <script lang="ts">
-	/** @type {import('./$types').PageData} */
-	export let data: any;
+	import type { PageData } from "./$types";
+	export let data: PageData;
+
 	import { Button } from "$lib/components/ui/button";
 	import * as Card from "$lib/components/ui/card";
+	import * as Alert from "$lib/components/ui/alert";
 	import Time from "svelte-time";
+	import { AlertCircle } from "lucide-svelte";
 
 	const supabase = data.supabase;
 
-	async function viewFile(filePath: string, download = false) {
+	async function openFile(filePath: string, download = false) {
 		const { data, error } = await supabase.storage
 			.from("files")
 			.getPublicUrl(filePath, { download: download });
@@ -35,9 +38,16 @@
 <h2 class="scroll-m-20 pb-8 text-3xl font-semibold tracking-tight first:mt-0">
 	Dashboard
 </h2>
+<Alert.Root class="mb-8 bg-sky-300">
+	<AlertCircle class="h-4 w-4" />
+	<Alert.Title>Heads up!</Alert.Title>
+	<Alert.Description>
+		Refresh the page to check for new files.
+	</Alert.Description>
+</Alert.Root>
 
 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-	{#if data.data.length > 0}
+	{#if data.data && data.data.length > 0}
 		{#each data.data as file}
 			{#if file.name != ".emptyFolderPlaceholder"}
 				<Card.Root>
@@ -61,12 +71,12 @@
 							>Delete</Button
 						>
 						<div class="flex gap-2">
-							<Button on:click={() => viewFile(file.name)}
+							<Button on:click={() => openFile(file.name)}
 								>View</Button
 							>
 							<Button
 								variant="secondary"
-								on:click={() => viewFile(file.name, true)}
+								on:click={() => openFile(file.name, true)}
 								>Download</Button
 							>
 						</div>

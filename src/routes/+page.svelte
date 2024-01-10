@@ -1,6 +1,7 @@
 <script lang="ts">
-	/** @type {import('./$types').PageData} */
-	export let data;
+	import type { PageData } from "./$types";
+	export let data: PageData;
+
 	import Uppy from "@uppy/core";
 	import Dashboard from "@uppy/dashboard";
 	import { onMount } from "svelte";
