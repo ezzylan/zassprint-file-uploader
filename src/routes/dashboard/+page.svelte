@@ -40,20 +40,23 @@
 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 	{#if data.data.length > 0}
 		{#each data.data as file}
-			<Card.Root>
-				<Card.Header>
-					<Card.Title class="truncate">{file.name}</Card.Title>
-				</Card.Header>
-				<Card.Footer class="flex justify-between">
-					<Button
-						variant="destructive"
-						on:click={() => deleteFile(file.name)}>Delete</Button
-					>
-					<Button on:click={() => downloadFile(file.name)}
-						>Download</Button
-					>
-				</Card.Footer>
-			</Card.Root>
+			{#if file.name != ".emptyFolderPlaceholder"}
+				<Card.Root>
+					<Card.Header>
+						<Card.Title class="truncate">{file.name}</Card.Title>
+					</Card.Header>
+					<Card.Footer class="flex justify-between">
+						<Button
+							variant="destructive"
+							on:click={() => deleteFile(file.name)}
+							>Delete</Button
+						>
+						<Button on:click={() => downloadFile(file.name)}
+							>Download</Button
+						>
+					</Card.Footer>
+				</Card.Root>
+			{/if}
 		{/each}
 	{:else}
 		<h4 class="scroll-m-20 text-xl font-semibold tracking-tight">
