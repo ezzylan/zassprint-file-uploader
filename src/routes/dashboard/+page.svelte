@@ -1,6 +1,6 @@
 <script lang="ts">
 	/** @type {import('./$types').PageData} */
-	export let data;
+	export let data: any;
 	import { Button } from "$lib/components/ui/button";
 	import * as Card from "$lib/components/ui/card";
 
