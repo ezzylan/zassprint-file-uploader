@@ -10,7 +10,6 @@ export async function load() {
 		.list("", { sortBy: { column: "created_at", order: "desc" } });
 
 	if (data) {
-		console.log(data);
 		return { supabase, data };
 	} else {
 		console.log(error);
