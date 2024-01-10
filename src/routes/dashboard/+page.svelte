@@ -7,24 +7,10 @@
 
 	const supabase = data.supabase;
 
-	async function viewFile(filePath: string) {
+	async function viewFile(filePath: string, download = false) {
 		const { data, error } = await supabase.storage
 			.from("files")
-			.getPublicUrl(filePath);
-
-		if (error) {
-			console.log(error);
-		} else {
-			window.open(data.publicUrl);
-		}
-	}
-
-	async function downloadFile(filePath: string) {
-		const { data, error } = await supabase.storage
-			.from("files")
-			.getPublicUrl(filePath, {
-				download: true,
-			});
+			.getPublicUrl(filePath, { download: download });
 
 		if (error) {
 			console.log(error);
@@ -58,9 +44,15 @@
 					<Card.Header>
 						<Card.Title class="truncate">{file.name}</Card.Title>
 					</Card.Header>
-					<Card.Content>
-						<Time timestamp={file.created_at} format="hh:mm:ss a" />
-						(<Time timestamp={file.created_at} relative />)
+					<Card.Content class="flex justify-between">
+						<div>
+							<Time
+								timestamp={file.created_at}
+								format="hh:mm:ss a"
+							/>
+							(<Time timestamp={file.created_at} relative />)
+						</div>
+						<Time timestamp={file.created_at} format="DD/MM/YYYY" />
 					</Card.Content>
 					<Card.Footer class="flex justify-between">
 						<Button
@@ -74,7 +66,7 @@
 							>
 							<Button
 								variant="secondary"
-								on:click={() => downloadFile(file.name)}
+								on:click={() => viewFile(file.name, true)}
 								>Download</Button
 							>
 						</div>
