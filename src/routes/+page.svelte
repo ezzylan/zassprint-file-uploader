@@ -20,15 +20,21 @@
 			proudlyDisplayPoweredByUppy: true,
 		});
 
-		uppy.on("complete", (result) => {
-			result.successful.map(async (file) => {
+		uppy.on("complete", async (result) => {
+			const files = [];
+
+			for (const file of result.successful) {
 				const { data, error } = await supabase.storage
 					.from("files")
 					.upload(file.name, file.data);
-			});
-			if (result.failed.length > 0) {
-				toast.error("Sorry, there was an error! Please try again");
-			} else {
+				if (error) {
+					toast.error("Sorry, there was an error! Please try again.");
+					break;
+				}
+				files.push(data);
+			}
+
+			if (files.length == result.successful.length) {
 				toast.success("Your files have been successfully uploaded!");
 			}
 		});

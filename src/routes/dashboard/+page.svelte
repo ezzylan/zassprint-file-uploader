@@ -2,11 +2,11 @@
 	import type { PageData } from "./$types";
 	export let data: PageData;
 
+	import * as Alert from "$lib/components/ui/alert";
 	import { Button } from "$lib/components/ui/button";
 	import * as Card from "$lib/components/ui/card";
-	import * as Alert from "$lib/components/ui/alert";
-	import Time from "svelte-time";
 	import { AlertCircle } from "lucide-svelte";
+	import Time from "svelte-time";
 
 	const supabase = data.supabase;
 
@@ -47,7 +47,7 @@
 </Alert.Root>
 
 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-	{#if data.data && data.data.length > 0}
+	{#if data.data && data.data.length > 1}
 		{#each data.data as file}
 			{#if file.name != ".emptyFolderPlaceholder"}
 				<Card.Root>
