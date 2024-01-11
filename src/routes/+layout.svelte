@@ -1,5 +1,7 @@
-<script>
+<script lang="ts">
 	import "../app.pcss";
+	import type { LayoutData } from "./$types";
+	export let data: LayoutData;
 </script>
 
 <svelte:head>
@@ -12,5 +14,5 @@
 	>
 		ZassPrint File Uploader
 	</h1>
-	<slot />
+	<slot {data} />
 </div>

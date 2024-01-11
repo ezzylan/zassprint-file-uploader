@@ -6,9 +6,20 @@
 	import { Button } from "$lib/components/ui/button";
 	import * as Card from "$lib/components/ui/card";
 	import { AlertCircle } from "lucide-svelte";
+	import { onMount } from "svelte";
 	import Time from "svelte-time";
 
 	const supabase = data.supabase;
+	let files: any;
+
+	onMount(async () => {
+		const { data, error } = await supabase.storage
+			.from("files")
+			.list("", { sortBy: { column: "created_at", order: "desc" } });
+		if (data) {
+			files = data;
+		}
+	});
 
 	async function openFile(filePath: string, download = false) {
 		const { data, error } = await supabase.storage
@@ -47,8 +58,8 @@
 </Alert.Root>
 
 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-	{#if data.data && data.data.length > 1}
-		{#each data.data as file}
+	{#if files && files.length > 1}
+		{#each files as file}
 			{#if file.name != ".emptyFolderPlaceholder"}
 				<Card.Root>
 					<Card.Header>
