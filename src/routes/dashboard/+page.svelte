@@ -87,8 +87,8 @@
 	</Alert.Description>
 </Alert.Root>
 
-{#if isRefreshing}
-	<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+	{#if isRefreshing}
 		<Card.Root>
 			<Card.Header>
 				<Skeleton class="w-[300px] h-[20px]" />
@@ -137,53 +137,43 @@
 				</div>
 			</Card.Footer>
 		</Card.Root>
-	</div>
-{:else}
-	<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-		{#if files && files.length > 0}
-			{#each files as file}
-				<Card.Root>
-					<Card.Header>
-						<Card.Title class="truncate">{file.name}</Card.Title>
-					</Card.Header>
-					<Card.Content class="flex justify-between">
-						<div>
-							<Time
-								timestamp={file.created_at}
-								format="hh:mm:ss a"
-							/>
-							(<Time timestamp={file.created_at} relative />)
-						</div>
-						<Time timestamp={file.created_at} format="DD/MM/YYYY" />
-					</Card.Content>
-					<Card.Footer class="flex justify-between">
-						<Button
-							variant="destructive"
-							on:click={() => {
-								deletedFileNames = [
-									...deletedFileNames,
-									file.name,
-								];
-								files = files.filter((f) => f != file);
-							}}>Delete</Button
+	{:else if files && files.length > 0}
+		{#each files as file}
+			<Card.Root>
+				<Card.Header>
+					<Card.Title class="truncate">{file.name}</Card.Title>
+				</Card.Header>
+				<Card.Content class="flex justify-between">
+					<div>
+						<Time timestamp={file.created_at} format="hh:mm:ss a" />
+						(<Time timestamp={file.created_at} relative />)
+					</div>
+					<Time timestamp={file.created_at} format="DD/MM/YYYY" />
+				</Card.Content>
+				<Card.Footer class="flex justify-between">
+					<Button
+						variant="destructive"
+						on:click={() => {
+							deletedFileNames = [...deletedFileNames, file.name];
+							files = files.filter((f) => f != file);
+						}}>Delete</Button
+					>
+					<div class="flex gap-2">
+						<Button on:click={() => openFile(file.name)}
+							>View</Button
 						>
-						<div class="flex gap-2">
-							<Button on:click={() => openFile(file.name)}
-								>View</Button
-							>
-							<Button
-								variant="secondary"
-								on:click={() => openFile(file.name, true)}
-								>Download</Button
-							>
-						</div>
-					</Card.Footer>
-				</Card.Root>
-			{/each}
-		{:else}
-			<h4 class="scroll-m-20 text-xl font-semibold tracking-tight">
-				No files available...
-			</h4>
-		{/if}
-	</div>
-{/if}
+						<Button
+							variant="secondary"
+							on:click={() => openFile(file.name, true)}
+							>Download</Button
+						>
+					</div>
+				</Card.Footer>
+			</Card.Root>
+		{/each}
+	{:else}
+		<h4 class="scroll-m-20 text-xl font-semibold tracking-tight">
+			No files available...
+		</h4>
+	{/if}
+</div>
