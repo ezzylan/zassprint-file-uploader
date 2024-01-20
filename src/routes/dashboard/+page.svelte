@@ -6,6 +6,7 @@
 	import { Button } from "$lib/components/ui/button";
 	import * as Card from "$lib/components/ui/card";
 	import { Skeleton } from "$lib/components/ui/skeleton";
+	import dayjs from "dayjs";
 	import { AlertCircle } from "lucide-svelte";
 	import { Reload } from "radix-icons-svelte";
 	import { onMount } from "svelte";
@@ -19,6 +20,7 @@
 	function getFiles() {
 		files = [];
 		deletedFileNames = [];
+		const now = dayjs();
 
 		setTimeout(async () => {
 			const { data, error } = await supabase.storage
@@ -28,8 +30,29 @@
 			if (data) {
 				data.map((file) => (files = [...files, file]));
 			}
+
+			files.map((file) => {
+				const fileCreatedTime = dayjs(file.created_at);
+
+				if (now.isAfter(fileCreatedTime, "hour")) {
+					deletedFileNames = [...deletedFileNames, file.name];
+					files = files.filter((f) => f != file);
+				}
+			});
+
+			if (deletedFileNames.length > 0) {
+				const { data, error } = await supabase.storage
+					.from("files")
+					.remove(deletedFileNames);
+
+				if (error) {
+					console.log(error);
+				}
+			}
+
 			isRefreshing = false;
 		}, 1000);
+		deletedFileNames = [];
 	}
 
 	async function openFile(filePath: string, download = false) {
@@ -89,54 +112,24 @@
 
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 	{#if isRefreshing}
-		<Card.Root>
-			<Card.Header>
-				<Skeleton class="w-[300px] h-[20px]" />
-			</Card.Header>
-			<Card.Content class="flex justify-between">
-				<Skeleton class="w-[200px] h-[20px]" />
-				<Skeleton class="w-[80px] h-[20px]" />
-			</Card.Content>
-			<Card.Footer class="flex justify-between">
-				<Skeleton class="w-[75px] h-10 rounded-md" />
-				<div class="flex gap-2">
-					<Skeleton class="w-[65px] h-10 rounded-md" />
-					<Skeleton class="w-[100px] h-10 rounded-md" />
-				</div>
-			</Card.Footer>
-		</Card.Root>
-		<Card.Root>
-			<Card.Header>
-				<Skeleton class="w-[300px] h-[20px]" />
-			</Card.Header>
-			<Card.Content class="flex justify-between">
-				<Skeleton class="w-[200px] h-[20px]" />
-				<Skeleton class="w-[80px] h-[20px]" />
-			</Card.Content>
-			<Card.Footer class="flex justify-between">
-				<Skeleton class="w-[75px] h-10 rounded-md" />
-				<div class="flex gap-2">
-					<Skeleton class="w-[65px] h-10 rounded-md" />
-					<Skeleton class="w-[100px] h-10 rounded-md" />
-				</div>
-			</Card.Footer>
-		</Card.Root>
-		<Card.Root>
-			<Card.Header>
-				<Skeleton class="w-[300px] h-[20px]" />
-			</Card.Header>
-			<Card.Content class="flex justify-between">
-				<Skeleton class="w-[200px] h-[20px]" />
-				<Skeleton class="w-[80px] h-[20px]" />
-			</Card.Content>
-			<Card.Footer class="flex justify-between">
-				<Skeleton class="w-[75px] h-10 rounded-md" />
-				<div class="flex gap-2">
-					<Skeleton class="w-[65px] h-10 rounded-md" />
-					<Skeleton class="w-[100px] h-10 rounded-md" />
-				</div>
-			</Card.Footer>
-		</Card.Root>
+		{#each Array(3) as _}
+			<Card.Root>
+				<Card.Header>
+					<Skeleton class="w-[300px] h-[20px]" />
+				</Card.Header>
+				<Card.Content class="flex justify-between">
+					<Skeleton class="w-[200px] h-[20px]" />
+					<Skeleton class="w-[80px] h-[20px]" />
+				</Card.Content>
+				<Card.Footer class="flex justify-between">
+					<Skeleton class="w-[75px] h-10 rounded-md" />
+					<div class="flex gap-2">
+						<Skeleton class="w-[65px] h-10 rounded-md" />
+						<Skeleton class="w-[100px] h-10 rounded-md" />
+					</div>
+				</Card.Footer>
+			</Card.Root>
+		{/each}
 	{:else if files && files.length > 0}
 		{#each files as file}
 			<Card.Root>
