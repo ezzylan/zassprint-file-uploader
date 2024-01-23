@@ -53,4 +53,4 @@
 	<Form.Button class="mt-4">Submit</Form.Button>
 </Form.Root>
 
-<Toaster richColors position="bottom-center" />
+<Toaster richColors position="top-right" />

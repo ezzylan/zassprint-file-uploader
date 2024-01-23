@@ -3,8 +3,9 @@
 	export let data: PageData;
 
 	import * as Alert from "$lib/components/ui/alert";
-	import { Button } from "$lib/components/ui/button";
+	import { Button, buttonVariants } from "$lib/components/ui/button";
 	import * as Card from "$lib/components/ui/card";
+	import * as Dialog from "$lib/components/ui/dialog";
 	import { Skeleton } from "$lib/components/ui/skeleton";
 
 	import { AlertCircle, Eye, Loader2, Trash2 } from "lucide-svelte";
@@ -160,27 +161,107 @@
 					<Card.Title class="truncate">{folder.name}</Card.Title>
 				</Card.Header>
 				<Card.Content class="flex flex-col gap-4">
-					{#each files.filter((f) => f.folder === folder.name) as file}
-						<div
-							class="flex justify-between items-center space-x-4 rounded-md border p-4"
-						>
-							<p class="truncate">{file.file.name}</p>
-							<div class="flex gap-2">
-								<Button
-									variant="destructive"
-									on:click={() => removeFile(file)}
+					{@const f = files.filter((f) => f.folder === folder.name)}
+					{#if f.length <= 3}
+						{#each f as file}
+							<div
+								class="flex justify-between items-center space-x-4 rounded-md border p-4"
+							>
+								<p
+									class="leading-7 [&:not(:first-child)]:mt-6 truncate"
 								>
-									<Trash2 />
-								</Button>
-								<Button
-									on:click={() =>
-										openFile(folder.name, file.file.name)}
-								>
-									<Eye />
-								</Button>
+									{file.file.name}
+								</p>
+								<div class="flex gap-2">
+									<Button
+										variant="destructive"
+										on:click={() => removeFile(file)}
+									>
+										<Trash2 />
+									</Button>
+									<Button
+										on:click={() =>
+											openFile(
+												folder.name,
+												file.file.name
+											)}
+									>
+										<Eye />
+									</Button>
+								</div>
 							</div>
-						</div>
-					{/each}
+						{/each}
+					{:else}
+						{#each f as file, i}
+							{#if i < 2}
+								<div
+									class="flex justify-between items-center space-x-4 rounded-md border p-4"
+								>
+									<p
+										class="leading-7 [&:not(:first-child)]:mt-6 truncate"
+									>
+										{file.file.name}
+									</p>
+									<div class="flex gap-2">
+										<Button
+											variant="destructive"
+											on:click={() => removeFile(file)}
+										>
+											<Trash2 />
+										</Button>
+										<Button
+											on:click={() =>
+												openFile(
+													folder.name,
+													file.file.name
+												)}
+										>
+											<Eye />
+										</Button>
+									</div>
+								</div>
+							{/if}
+						{/each}
+						<Dialog.Root>
+							<Dialog.Trigger
+								class={buttonVariants({ variant: "outline" })}
+								>{f.length - 2} more files</Dialog.Trigger
+							>
+							<Dialog.Content>
+								{#each f as file, i}
+									{#if i >= 2}
+										<div
+											class="flex justify-between items-center space-x-4 rounded-md border p-4 max-w-[435px]"
+										>
+											<p
+												class="leading-7 [&:not(:first-child)]:mt-6 truncate"
+											>
+												{file.file.name}
+											</p>
+											<div class="flex gap-2">
+												<Button
+													variant="destructive"
+													on:click={() =>
+														removeFile(file)}
+												>
+													<Trash2 />
+												</Button>
+												<Button
+													on:click={() =>
+														openFile(
+															folder.name,
+															file.file.name
+														)}
+												>
+													<Eye />
+												</Button>
+											</div>
+										</div>
+									{/if}
+								{/each}
+							</Dialog.Content>
+						</Dialog.Root>
+					{/if}
 				</Card.Content>
 				<Card.Footer class="flex justify-end">
 					<Button
