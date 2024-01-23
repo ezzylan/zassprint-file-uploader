@@ -6,65 +6,85 @@
 	import { Button } from "$lib/components/ui/button";
 	import * as Card from "$lib/components/ui/card";
 	import { Skeleton } from "$lib/components/ui/skeleton";
-	import dayjs from "dayjs";
-	import { AlertCircle } from "lucide-svelte";
-	import { Reload } from "radix-icons-svelte";
+
+	import { AlertCircle, Eye, Loader2, Trash2 } from "lucide-svelte";
 	import { onMount } from "svelte";
-	import Time from "svelte-time";
 
 	const supabase = data.supabase;
+	let folders: any[];
 	let files: any[];
-	let deletedFileNames: string[];
+	let deletedFileNames: string[] = [];
 	let isRefreshing = true;
 
 	function getFiles() {
+		folders = [];
 		files = [];
-		deletedFileNames = [];
-		const now = dayjs();
 
 		setTimeout(async () => {
 			const { data, error } = await supabase.storage
 				.from("files")
-				.list("", { sortBy: { column: "created_at", order: "desc" } });
+				.list("");
 
 			if (data) {
-				data.map((file) => (files = [...files, file]));
+				data.map((folder) => (folders = [...folders, folder]));
 			}
 
-			files.map((file) => {
-				const fileCreatedTime = dayjs(file.created_at);
-
-				if (now.isAfter(fileCreatedTime, "hour")) {
-					deletedFileNames = [...deletedFileNames, file.name];
-					files = files.filter((f) => f != file);
-				}
-			});
-
-			if (deletedFileNames.length > 0) {
+			folders.map(async (folder) => {
 				const { data, error } = await supabase.storage
 					.from("files")
-					.remove(deletedFileNames);
+					.list(folder.name, {
+						sortBy: { column: "created_at", order: "desc" },
+					});
 
-				if (error) {
-					console.log(error);
+				if (data) {
+					data.map((file) => {
+						files = [...files, { folder: folder.name, file: file }];
+					});
 				}
-			}
+			});
 
 			isRefreshing = false;
 		}, 1000);
 		deletedFileNames = [];
 	}
 
-	async function openFile(filePath: string, download = false) {
+	async function openFile(folderName: string, fileName: string) {
 		const { data, error } = await supabase.storage
 			.from("files")
-			.getPublicUrl(filePath, { download: download });
+			.getPublicUrl(`${folderName}/${fileName}`);
 
 		if (error) {
 			console.log(error);
 		} else {
 			window.open(data.publicUrl);
 		}
+	}
+
+	function removeFile(file: any) {
+		deletedFileNames = [
+			...deletedFileNames,
+			`${file.folder}/${file.file.name}`,
+		];
+		files = files.filter((f) => f.file !== file.file);
+
+		const notContained = files.every((f) => {
+			return f.folder !== file.folder;
+		});
+		if (notContained) {
+			folders = folders.filter((f) => f.name !== file.folder);
+		}
+	}
+
+	function removeFolder(folderName: string) {
+		const filesToBeDeleted = files.filter((f) => f.folder === folderName);
+		filesToBeDeleted.map((file) => {
+			deletedFileNames = [
+				...deletedFileNames,
+				`${file.folder}/${file.file.name}`,
+			];
+		});
+		files = files.filter((f) => f.folder !== folderName);
+		folders = folders.filter((folder) => folder.name !== folderName);
 	}
 
 	async function checkFiles() {
@@ -94,7 +114,7 @@
 	</h2>
 	<Button disabled={isRefreshing} on:click={checkFiles}>
 		{#if isRefreshing}
-			<Reload class="mr-2 h-4 w-4 animate-spin" />
+			<Loader2 class="mr-2 h-4 w-4 animate-spin" />
 			Refreshing...
 		{:else}
 			Refresh
@@ -115,52 +135,59 @@
 		{#each Array(3) as _}
 			<Card.Root>
 				<Card.Header>
-					<Skeleton class="w-[300px] h-[20px]" />
+					<Skeleton class="w-[100px] h-[20px]" />
 				</Card.Header>
-				<Card.Content class="flex justify-between">
-					<Skeleton class="w-[200px] h-[20px]" />
-					<Skeleton class="w-[80px] h-[20px]" />
-				</Card.Content>
-				<Card.Footer class="flex justify-between">
-					<Skeleton class="w-[75px] h-10 rounded-md" />
-					<div class="flex gap-2">
-						<Skeleton class="w-[65px] h-10 rounded-md" />
-						<Skeleton class="w-[100px] h-10 rounded-md" />
+				<Card.Content>
+					<div
+						class="flex justify-between items-center space-x-4 rounded-md border p-4"
+					>
+						<Skeleton class="w-[200px] h-[20px]" />
+						<div class="flex gap-2">
+							<Skeleton class="w-[55px] h-10 rounded-md" />
+							<Skeleton class="w-[55px] h-10 rounded-md" />
+						</div>
 					</div>
+				</Card.Content>
+				<Card.Footer class="flex justify-end">
+					<Skeleton class="w-[100px] h-10 rounded-md" />
 				</Card.Footer>
 			</Card.Root>
 		{/each}
-	{:else if files && files.length > 0}
-		{#each files as file}
+	{:else if folders && folders.length > 0}
+		{#each folders as folder}
 			<Card.Root>
 				<Card.Header>
-					<Card.Title class="truncate">{file.name}</Card.Title>
+					<Card.Title class="truncate">{folder.name}</Card.Title>
 				</Card.Header>
-				<Card.Content class="flex justify-between">
-					<div>
-						<Time timestamp={file.created_at} format="hh:mm:ss a" />
-						(<Time timestamp={file.created_at} relative />)
-					</div>
-					<Time timestamp={file.created_at} format="DD/MM/YYYY" />
+				<Card.Content class="flex flex-col gap-4">
+					{#each files.filter((f) => f.folder === folder.name) as file}
+						<div
+							class="flex justify-between items-center space-x-4 rounded-md border p-4"
+						>
+							<p class="truncate">{file.file.name}</p>
+							<div class="flex gap-2">
+								<Button
+									variant="destructive"
+									on:click={() => removeFile(file)}
+								>
+									<Trash2 />
+								</Button>
+								<Button
+									on:click={() =>
+										openFile(folder.name, file.file.name)}
+								>
+									<Eye />
+								</Button>
+							</div>
+						</div>
+					{/each}
 				</Card.Content>
-				<Card.Footer class="flex justify-between">
+				<Card.Footer class="flex justify-end">
 					<Button
 						variant="destructive"
-						on:click={() => {
-							deletedFileNames = [...deletedFileNames, file.name];
-							files = files.filter((f) => f != file);
-						}}>Delete</Button
+						on:click={() => removeFolder(folder.name)}
+						>Delete All</Button
 					>
-					<div class="flex gap-2">
-						<Button on:click={() => openFile(file.name)}
-							>View</Button
-						>
-						<Button
-							variant="secondary"
-							on:click={() => openFile(file.name, true)}
-							>Download</Button
-						>
-					</div>
 				</Card.Footer>
 			</Card.Root>
 		{/each}
