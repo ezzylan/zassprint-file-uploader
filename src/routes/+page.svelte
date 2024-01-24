@@ -1,56 +1,28 @@
 <script lang="ts">
-	import type { PageData } from "./$types";
-	export let data: PageData;
-
-	import * as Form from "$lib/components/ui/form";
-	import type { FormOptions } from "formsnap";
-	import { toast, Toaster } from "svelte-sonner";
-	import { formSchema, type FormSchema } from "./schema";
-
-	const options: FormOptions<FormSchema> = {
-		onSubmit() {
-			toast.info("Submitting...");
-		},
-		onResult({ result }) {
-			if (result.status === 200)
-				toast.success("Your files have been successfully uploaded!");
-			if (result.status === 400)
-				toast.error("Sorry, there was an error!");
-		},
-	};
+	import { Button } from "$lib/components/ui/button";
+	import { ClipboardType, FileUp } from "lucide-svelte";
 </script>
 
 <h2 class="scroll-m-20 pb-8 text-3xl font-semibold tracking-tight first:mt-0">
-	Upload your files here
+	What do you want to do?
 </h2>
 
-<Form.Root
-	method="POST"
-	form={data.form}
-	{options}
-	schema={formSchema}
-	let:config
-	enctype="multipart/form-data"
->
-	<Form.Field {config} name="name">
-		<Form.Item>
-			<Form.Label>Name</Form.Label>
-			<Form.Input required />
-			<Form.Description
-				>Just a short name for us to identify you.</Form.Description
-			>
-			<Form.Validation />
-		</Form.Item>
-	</Form.Field>
-	<Form.Field {config} name="files">
-		<Form.Item>
-			<Form.Label>Files</Form.Label>
-			<Form.Input type="file" multiple required />
-			<Form.Description>Preferably in PDF format.</Form.Description>
-			<Form.Validation />
-		</Form.Item>
-	</Form.Field>
-	<Form.Button class="mt-4">Submit</Form.Button>
-</Form.Root>
-
-<Toaster richColors position="top-right" />
+<div class="flex flex-col gap-3 items-center">
+	<Button variant="outline" href="/file-upload" class="h-auto p-10">
+		<div class="flex flex-col gap-3 items-center">
+			<FileUp class="h-20 w-20" />
+			<h4 class="scroll-m-20 text-xl font-semibold tracking-tight">
+				KPS File Uploader
+			</h4>
+		</div>
+	</Button>
+	<Button variant="outline" class="h-auto p-10" disabled>
+		<div class="flex flex-col gap-3 items-center">
+			<ClipboardType class="h-20 w-20" />
+			<h4 class="scroll-m-20 text-xl font-semibold tracking-tight">
+				Thesis Order Form
+			</h4>
+			<p class="text-sm text-muted-foreground">Coming soon</p>
+		</div>
+	</Button>
+</div>

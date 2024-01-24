@@ -3,11 +3,11 @@ import { createClient } from "@supabase/supabase-js";
 import { fail } from "@sveltejs/kit";
 import { setError, superValidate } from "sveltekit-superforms/server";
 import type { Actions, PageServerLoad } from "./$types";
-import { formSchema } from "./schema";
+import { fileUploadFormSchema } from "./schema";
 
 export const load: PageServerLoad = async () => {
 	return {
-		form: await superValidate(formSchema),
+		form: await superValidate(fileUploadFormSchema),
 	};
 };
 
@@ -15,7 +15,7 @@ export const actions: Actions = {
 	default: async ({ request }) => {
 		const supabase = createClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_KEY);
 		const formData = await request.formData();
-		const form = await superValidate(formData, formSchema);
+		const form = await superValidate(formData, fileUploadFormSchema);
 
 		if (!form.valid) return fail(400, { form });
 
