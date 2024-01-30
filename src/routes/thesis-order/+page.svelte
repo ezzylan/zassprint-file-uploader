@@ -58,7 +58,9 @@
 	</h2>
 
 	<Dialog.Root>
-		<Dialog.Trigger class={buttonVariants({ variant: "primary" })}>Price</Dialog.Trigger>
+		<Dialog.Trigger class={buttonVariants({ variant: "default" })}>
+			Price
+		</Dialog.Trigger>
 		<Dialog.Content>
 			<Dialog.Header>
 				<Dialog.Title>Price List</Dialog.Title>
@@ -333,7 +335,7 @@
 	<Form.Field {config} name="address">
 		<Form.Item>
 			<Form.Label>Address</Form.Label>
-			<Form.Textarea class="resize-none" required />
+			<Form.Textarea class="resize-none" />
 			<Form.Validation />
 		</Form.Item>
 	</Form.Field>

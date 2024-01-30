@@ -230,12 +230,14 @@
 							</div>
 						</div>
 
-						<div class="mt-2 sm:mt-4">
-							<div class="text-lg font-semibold">Address</div>
-							<small class="text-sm font-medium leading-none">
-								{customerDetails.address}
-							</small>
-						</div>
+						{#if customerDetails.address}
+							<div class="mt-2 sm:mt-4">
+								<div class="text-lg font-semibold">Address</div>
+								<small class="text-sm font-medium leading-none">
+									{customerDetails.address}
+								</small>
+							</div>
+						{/if}
 					</Accordion.Content>
 				</Accordion.Item>
 			</Accordion.Root>

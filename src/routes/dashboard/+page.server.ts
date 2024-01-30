@@ -29,7 +29,11 @@ const getKpsFiles = async (kpsFolders: any) => {
 };
 
 const getThesisOrders = async () => {
-	const { data, error } = await supabase.from("thesis-orders").select();
+	const { data, error } = await supabase
+		.from("thesis-orders")
+		.select()
+		.order("order_no", { ascending: false });
+
 	return data ?? error;
 };
 
