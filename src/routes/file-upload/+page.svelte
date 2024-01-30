@@ -20,7 +20,9 @@
 	};
 </script>
 
-<h2 class="scroll-m-20 pb-8 text-3xl font-semibold tracking-tight first:mt-0">
+<h2
+	class="scroll-m-20 pb-8 text-3xl font-semibold tracking-tight transition-colors first:mt-0"
+>
 	Upload your files here
 </h2>
 
