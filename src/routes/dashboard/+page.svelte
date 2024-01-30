@@ -15,7 +15,7 @@
 	const kpsFiles = data.kpsFiles;
 	const thesisOrders = data.thesisOrders;
 
-	let dashboard = "Thesis Orders";
+	let dashboard = "KPS Files";
 </script>
 
 <div class="flex justify-between">
