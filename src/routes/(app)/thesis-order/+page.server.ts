@@ -2,7 +2,7 @@ import { supabase } from "$lib/supabaseClient";
 import { fail } from "@sveltejs/kit";
 import dayjs from "dayjs";
 import type { SuperValidated } from "sveltekit-superforms";
-import { setError, superValidate } from "sveltekit-superforms/server";
+import { message, setError, superValidate } from "sveltekit-superforms/server";
 import type { Actions, PageServerLoad } from "./$types";
 import { thesisOrderFormSchema, type FormSchema } from "./schema";
 
@@ -49,9 +49,11 @@ const countExistingOrders = async () => {
 	}
 };
 
-const insertDatabase = async (formDataObj: any, thesisFileUrl: string) => {
-	const orderNo = await countExistingOrders();
-
+const insertDatabase = async (
+	formDataObj: any,
+	thesisFileUrl: string,
+	orderNo: string
+) => {
 	const { error } = await supabase.from("thesis-orders").insert({
 		name: formDataObj.name,
 		phone_num: formDataObj.phoneNum,
@@ -66,6 +68,8 @@ const insertDatabase = async (formDataObj: any, thesisFileUrl: string) => {
 		black_white_pages: formDataObj.blackWhitePages,
 		copies: formDataObj.copies,
 		thesis_file_url: thesisFileUrl,
+		cd_label: formDataObj.cdBurn === "true" ? formDataObj.cdLabel : null,
+		cd_copies: formDataObj.cdBurn === "true" ? formDataObj.cdCopies : null,
 		collection_date: formDataObj.collectionDate,
 		collection_method: formDataObj.collectionMethod,
 		address: formDataObj.address,
@@ -77,20 +81,25 @@ export const actions: Actions = {
 	default: async ({ request }) => {
 		const formData = await request.formData();
 		const form = await superValidate(formData, thesisOrderFormSchema);
-		const formDataObj = Object.fromEntries(formData.entries());
 
 		if (!form.valid) return fail(400, { form });
 
 		const thesisFile = formData.get("thesisFile");
+		const formDataObj = Object.fromEntries(formData.entries());
+		const orderNo = (await countExistingOrders()) as string;
+
 		if (thesisFile) {
 			uploadFile(thesisFile, form)
 				.then(() => getPublicUrl(thesisFile))
 				.then((thesisFileUrl) =>
-					insertDatabase(formDataObj, thesisFileUrl)
+					insertDatabase(formDataObj, thesisFileUrl, orderNo)
 				)
 				.catch(() => fail(400, { form }));
 		}
 
-		return { form };
+		return {
+			form,
+			orderNo: `${dayjs().format("YYMM")}${orderNo}`,
+		};
 	},
 };

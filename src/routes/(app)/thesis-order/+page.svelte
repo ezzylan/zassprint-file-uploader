@@ -3,6 +3,7 @@
 	export let data: PageData;
 
 	import * as Alert from "$lib/components/ui/alert";
+	import * as AlertDialog from "$lib/components/ui/alert-dialog";
 	import { buttonVariants } from "$lib/components/ui/button";
 	import { Calendar } from "$lib/components/ui/calendar";
 	import * as Dialog from "$lib/components/ui/dialog";
@@ -19,6 +20,7 @@
 		type DateValue,
 	} from "@internationalized/date";
 	import { AlertCircle, CalendarIcon } from "lucide-svelte";
+	import { copyText } from "svelte-copy";
 	import { Toaster, toast } from "svelte-sonner";
 	import { superForm } from "sveltekit-superforms/client";
 	import { thesisOrderFormSchema } from "./schema";
@@ -27,13 +29,16 @@
 		validators: thesisOrderFormSchema,
 		taintedMessage: null,
 		onSubmit: () => {
-			toast.info("Submitting...");
+			toast.loading("Submitting...");
 		},
 		onResult: ({ result }) => {
-			if (result.status === 200)
-				toast.success("We have received your order!");
-			if (result.status === 400)
+			if (result.status === 200) {
+				dialogOpen = true;
+				orderNo = result.data.orderNo;
+			}
+			if (result.status === 400) {
 				toast.error("Sorry, there was an error!");
+			}
 		},
 	});
 
@@ -48,6 +53,11 @@
 		: undefined;
 
 	let placeholder: DateValue = today(getLocalTimeZone()).add({ days: 2 });
+	let cdBurn = false;
+	$: cdDisabled = !cdBurn;
+	let addressDisabled = false;
+	let dialogOpen = false;
+	let orderNo = "";
 </script>
 
 <div class="flex justify-between">
@@ -58,8 +68,9 @@
 	</h2>
 
 	<Dialog.Root>
-		<Dialog.Trigger class={buttonVariants({ variant: "default" })}>
-			Price
+		<Dialog.Trigger class={buttonVariants({ variant: "destructive" })}>
+			<span class="sm:hidden">Pricing</span>
+			<span class="hidden sm:block">Click Here for Pricing</span>
 		</Dialog.Trigger>
 		<Dialog.Content>
 			<Dialog.Header>
@@ -70,7 +81,8 @@
 						<li>Color - RM1.50/page</li>
 						<li>Hard/Soft Binding - RM25/book</li>
 						<li>CD Burn & Label - RM10/piece or RM5/piece</li>
-						<li>Grab Service - Based on Grab price</li>
+						<li>Delivery Service - Based on Grab delivery price</li>
+						<li>*can request for other courier services</li>
 					</ul>
 				</Dialog.Description>
 			</Dialog.Header>
@@ -177,6 +189,9 @@
 						<Form.SelectItem value="Ocean Blue">
 							Ocean Blue
 						</Form.SelectItem>
+						<Form.SelectItem value="Plastic Cover">
+							Plastic Cover
+						</Form.SelectItem>
 					</Form.SelectContent>
 				</Form.Select>
 				<Form.Validation />
@@ -248,7 +263,7 @@
 		<Form.Field {config} name="copies">
 			<Form.Item>
 				<Form.Label>Number of Copies</Form.Label>
-				<Form.Input type="number" min="0" required />
+				<Form.Input type="number" min="1" required />
 				<Form.Validation />
 			</Form.Item>
 		</Form.Field>
@@ -257,6 +272,47 @@
 				<Form.Label>Upload Your Thesis File Here</Form.Label>
 				<Form.Input type="file" required />
 				<Form.Description>In PDF format.</Form.Description>
+				<Form.Validation />
+			</Form.Item>
+		</Form.Field>
+	</div>
+
+	<Separator class="my-6" />
+
+	<Form.Field {config} name="cdBurn">
+		<Form.Item class="flex flex-row items-start space-x-3 space-y-0 pb-4">
+			<Form.Checkbox onCheckedChange={() => (cdBurn = !cdBurn)} />
+			<div class="space-y-1 leading-none">
+				<Form.Label>CD Burn</Form.Label>
+			</div>
+		</Form.Item>
+	</Form.Field>
+
+	<div class="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-4">
+		<Form.Field {config} name="cdLabel">
+			<Form.Item>
+				<Form.Label>CD Label</Form.Label>
+				<Form.Select bind:disabled={cdDisabled}>
+					<Form.SelectTrigger placeholder="Select CD label" />
+					<Form.SelectContent>
+						<Form.SelectItem value="Sticker Label">
+							Sticker Label
+						</Form.SelectItem>
+						<Form.SelectItem value="Paper Label">
+							Paper Label
+						</Form.SelectItem>
+					</Form.SelectContent>
+				</Form.Select>
+				<Form.Description>
+					Sticker label (RM10/pc), paper label (RM5/pc).
+				</Form.Description>
+				<Form.Validation />
+			</Form.Item>
+		</Form.Field>
+		<Form.Field {config} name="cdCopies">
+			<Form.Item>
+				<Form.Label>Number of CD Copies</Form.Label>
+				<Form.Input type="number" min="0" bind:disabled={cdDisabled} />
 				<Form.Validation />
 			</Form.Item>
 		</Form.Field>
@@ -313,7 +369,12 @@
 		<Form.Field {config} name="collectionMethod">
 			<Form.Item>
 				<Form.Label>Collection Method</Form.Label>
-				<Form.Select required>
+				<Form.Select
+					required
+					onSelectedChange={(e) =>
+						(addressDisabled =
+							e?.value === "Pick Up" ? true : false)}
+				>
 					<Form.SelectTrigger placeholder="Select thesis type" />
 					<Form.SelectContent>
 						<Form.SelectItem value="Delivery">
@@ -324,18 +385,15 @@
 						</Form.SelectItem>
 					</Form.SelectContent>
 				</Form.Select>
-				<Form.Description>
-					Just leave the Address field blank if you selected "Pick
-					Up".
-				</Form.Description>
 				<Form.Validation />
 			</Form.Item>
 		</Form.Field>
 	</div>
+
 	<Form.Field {config} name="address">
 		<Form.Item>
 			<Form.Label>Address</Form.Label>
-			<Form.Textarea class="resize-none" />
+			<Form.Textarea class="resize-none" disabled={addressDisabled} />
 			<Form.Validation />
 		</Form.Item>
 	</Form.Field>
@@ -343,3 +401,20 @@
 </Form.Root>
 
 <Toaster richColors position="top-right" />
+
+<AlertDialog.Root bind:open={dialogOpen}>
+	<AlertDialog.Content>
+		<AlertDialog.Header>
+			<AlertDialog.Title>We have received your order!</AlertDialog.Title>
+			<AlertDialog.Description>
+				Here's your order number: #{orderNo}
+			</AlertDialog.Description>
+		</AlertDialog.Header>
+		<AlertDialog.Footer>
+			<AlertDialog.Cancel>OK</AlertDialog.Cancel>
+			<AlertDialog.Action on:click={() => copyText(orderNo)}>
+				Copy Order Number
+			</AlertDialog.Action>
+		</AlertDialog.Footer>
+	</AlertDialog.Content>
+</AlertDialog.Root>

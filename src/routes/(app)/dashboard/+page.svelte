@@ -7,6 +7,7 @@
 	import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
 	import { supabase } from "$lib/supabaseClient";
 
+	import * as Tabs from "$lib/components/ui/tabs";
 	import { AlertCircle, ChevronDown } from "lucide-svelte";
 	import KpsFiles from "./KpsFiles.svelte";
 	import ThesisOrders from "./ThesisOrders.svelte";
@@ -24,26 +25,29 @@
 	>
 		Dashboard
 	</h2>
-	<div class="flex gap-4">
-		<DropdownMenu.Root>
-			<DropdownMenu.Trigger asChild let:builder>
-				<Button variant="outline" builders={[builder]}>
-					<ChevronDown />
-					<p class="hidden sm:block sm:ml-2">{dashboard}</p>
-				</Button>
-			</DropdownMenu.Trigger>
-			<DropdownMenu.Content>
-				<DropdownMenu.RadioGroup bind:value={dashboard}>
-					<DropdownMenu.RadioItem value="KPS Files">
-						KPS Files
-					</DropdownMenu.RadioItem>
-					<DropdownMenu.RadioItem value="Thesis Orders">
-						Thesis Orders
-					</DropdownMenu.RadioItem>
-				</DropdownMenu.RadioGroup>
-			</DropdownMenu.Content>
-		</DropdownMenu.Root>
-	</div>
+	<Tabs.Root bind:value={dashboard} class="hidden sm:block">
+		<Tabs.List>
+			<Tabs.Trigger value="KPS Files">KPS Files</Tabs.Trigger>
+			<Tabs.Trigger value="Thesis Orders">Thesis Orders</Tabs.Trigger>
+		</Tabs.List>
+	</Tabs.Root>
+	<DropdownMenu.Root>
+		<DropdownMenu.Trigger asChild let:builder>
+			<Button variant="outline" builders={[builder]} class="sm:hidden">
+				<ChevronDown />
+			</Button>
+		</DropdownMenu.Trigger>
+		<DropdownMenu.Content>
+			<DropdownMenu.RadioGroup bind:value={dashboard}>
+				<DropdownMenu.RadioItem value="KPS Files">
+					KPS Files
+				</DropdownMenu.RadioItem>
+				<DropdownMenu.RadioItem value="Thesis Orders">
+					Thesis Orders
+				</DropdownMenu.RadioItem>
+			</DropdownMenu.RadioGroup>
+		</DropdownMenu.Content>
+	</DropdownMenu.Root>
 </div>
 
 <Alert.Root class="mb-8 bg-sky-300">

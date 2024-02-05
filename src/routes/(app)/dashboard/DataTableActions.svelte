@@ -1,6 +1,6 @@
 <script lang="ts">
 	import * as Accordion from "$lib/components/ui/accordion";
-	import { Button } from "$lib/components/ui/button";
+	import { Button, buttonVariants } from "$lib/components/ui/button";
 	import * as Dialog from "$lib/components/ui/dialog";
 	import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
 	import { Separator } from "$lib/components/ui/separator";
@@ -9,12 +9,13 @@
 	export let supabase: any;
 	export let id: string;
 
+	const thesisOrdersTable = "thesis-orders";
 	let currStatus: string;
 	let dialogOpen = false;
 
 	const getCustomerDetails = async () => {
 		const { data, error } = await supabase
-			.from("thesis-orders")
+			.from(thesisOrdersTable)
 			.select()
 			.eq("id", id);
 
@@ -26,8 +27,21 @@
 
 	const updateStatus = async (status: string) => {
 		const { error } = await supabase
-			.from("thesis-orders")
+			.from(thesisOrdersTable)
 			.update({ status: status })
+			.eq("id", id);
+
+		if (error) {
+			console.error(error);
+		} else {
+			location.reload();
+		}
+	};
+
+	const deleteOrder = async () => {
+		const { error } = await supabase
+			.from(thesisOrdersTable)
+			.delete()
 			.eq("id", id);
 
 		if (error) {
@@ -38,45 +52,61 @@
 	};
 </script>
 
-<DropdownMenu.Root>
-	<DropdownMenu.Trigger asChild let:builder>
-		<Button
-			variant="ghost"
-			builders={[builder]}
-			size="icon"
-			class="relative w-8 h-8 p-0"
-		>
-			<span class="sr-only">Open menu</span>
-			<MoreHorizontal class="w-4 h-4" />
-		</Button>
-	</DropdownMenu.Trigger>
-	<DropdownMenu.Content>
-		<DropdownMenu.Item on:click={() => (dialogOpen = true)}>
-			View details
-		</DropdownMenu.Item>
-		<DropdownMenu.Item disabled>Download receipt</DropdownMenu.Item>
-		<DropdownMenu.Separator />
-		<DropdownMenu.Group>
-			<DropdownMenu.Label>Status</DropdownMenu.Label>
-			<DropdownMenu.RadioGroup
-				bind:value={currStatus}
-				onValueChange={(value) => updateStatus(value)}
-			>
-				<DropdownMenu.RadioItem value="pending">
-					Pending
-				</DropdownMenu.RadioItem>
-				<DropdownMenu.RadioItem value="processing">
-					Processing
-				</DropdownMenu.RadioItem>
-				<DropdownMenu.RadioItem value="completed">
-					Completed
-				</DropdownMenu.RadioItem>
-			</DropdownMenu.RadioGroup>
-		</DropdownMenu.Group>
-	</DropdownMenu.Content>
-</DropdownMenu.Root>
-
 {#await getCustomerDetails() then customerDetails}
+	<DropdownMenu.Root>
+		<DropdownMenu.Trigger asChild let:builder>
+			<Button
+				variant="ghost"
+				builders={[builder]}
+				size="icon"
+				class="relative w-8 h-8 p-0"
+			>
+				<span class="sr-only">Open menu</span>
+				<MoreHorizontal class="w-4 h-4" />
+			</Button>
+		</DropdownMenu.Trigger>
+		<DropdownMenu.Content>
+			<DropdownMenu.Group>
+				<DropdownMenu.Label>Status</DropdownMenu.Label>
+				<DropdownMenu.RadioGroup
+					bind:value={currStatus}
+					onValueChange={(value) => updateStatus(value)}
+				>
+					<DropdownMenu.RadioItem value="pending">
+						Pending
+					</DropdownMenu.RadioItem>
+					<DropdownMenu.RadioItem value="confirmed">
+						Confirmed
+					</DropdownMenu.RadioItem>
+					<DropdownMenu.RadioItem value="printed">
+						Printed
+					</DropdownMenu.RadioItem>
+					<DropdownMenu.RadioItem value="delivered">
+						Delivered
+					</DropdownMenu.RadioItem>
+				</DropdownMenu.RadioGroup>
+			</DropdownMenu.Group>
+
+			<DropdownMenu.Separator />
+
+			<DropdownMenu.Item on:click={() => (dialogOpen = true)}>
+				View details
+			</DropdownMenu.Item>
+			<DropdownMenu.Item disabled
+				on:click={() =>
+					window.open(`/receipts/${customerDetails.order_no}`)}
+				>View receipt</DropdownMenu.Item
+			>
+
+			<DropdownMenu.Separator />
+
+			<DropdownMenu.Item
+				class={buttonVariants({ variant: "destructive" })}
+				on:click={deleteOrder}>Delete order</DropdownMenu.Item
+			>
+		</DropdownMenu.Content>
+	</DropdownMenu.Root>
+
 	<Dialog.Root bind:open={dialogOpen}>
 		<Dialog.Content>
 			<Dialog.Header>
@@ -91,7 +121,7 @@
 
 			<Accordion.Root>
 				<Accordion.Item value="item-1">
-					<Accordion.Trigger>Personal Details</Accordion.Trigger>
+					<Accordion.Trigger>Customer Information</Accordion.Trigger>
 					<Accordion.Content>
 						<div
 							class="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-4"
@@ -117,7 +147,7 @@
 				</Accordion.Item>
 
 				<Accordion.Item value="item-2">
-					<Accordion.Trigger>Thesis Details</Accordion.Trigger>
+					<Accordion.Trigger>Thesis Information</Accordion.Trigger>
 					<Accordion.Content>
 						<div
 							class="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-4"
@@ -203,11 +233,40 @@
 								</small>
 							</div>
 						</div>
+
+						{#if customerDetails.cd_label}
+							<Separator class="my-6" />
+
+							<div
+								class="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-4"
+							>
+								<div>
+									<div class="text-lg font-semibold">
+										CD Label
+									</div>
+									<small
+										class="text-sm font-medium leading-none"
+									>
+										{customerDetails.cd_label}
+									</small>
+								</div>
+								<div>
+									<div class="text-lg font-semibold">
+										CD Copies
+									</div>
+									<small
+										class="text-sm font-medium leading-none"
+									>
+										{customerDetails.cd_copies}
+									</small>
+								</div>
+							</div>
+						{/if}
 					</Accordion.Content>
 				</Accordion.Item>
 
 				<Accordion.Item value="item-3">
-					<Accordion.Trigger>Collection Details</Accordion.Trigger>
+					<Accordion.Trigger>Delivery Information</Accordion.Trigger>
 					<Accordion.Content>
 						<div
 							class="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-4"
