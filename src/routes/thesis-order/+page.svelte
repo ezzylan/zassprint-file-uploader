@@ -21,7 +21,7 @@
 	} from "@internationalized/date";
 	import { AlertCircle, CalendarIcon } from "lucide-svelte";
 	import { copyText } from "svelte-copy";
-	import { Toaster, toast } from "svelte-sonner";
+	import { toast } from "svelte-sonner";
 	import { superForm } from "sveltekit-superforms/client";
 	import { thesisOrderFormSchema } from "./schema";
 
@@ -399,8 +399,6 @@
 	</Form.Field>
 	<Form.Button class="mt-4">Submit</Form.Button>
 </Form.Root>
-
-<Toaster richColors position="top-right" />
 
 <AlertDialog.Root bind:open={dialogOpen}>
 	<AlertDialog.Content>

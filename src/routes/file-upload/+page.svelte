@@ -5,7 +5,7 @@
 	import * as Dialog from "$lib/components/ui/dialog";
 	import * as Form from "$lib/components/ui/form";
 	import type { FormOptions } from "formsnap";
-	import { toast, Toaster } from "svelte-sonner";
+	import { toast } from "svelte-sonner";
 	import { fileUploadFormSchema, type FormSchema } from "./schema";
 
 	const options: FormOptions<FormSchema> = {
@@ -61,8 +61,6 @@
 	</Form.Field>
 	<Form.Button class="mt-4">Submit</Form.Button>
 </Form.Root>
-
-<Toaster richColors position="top-right" />
 
 <Dialog.Root bind:open={dialogOpen}>
 	<Dialog.Content class="bg-green-300">
