@@ -6,7 +6,7 @@ import { PDFDocument } from "pdf-lib";
 import type { RequestHandler } from "./$types";
 
 export const GET: RequestHandler = async ({ url }) => {
-	const orderNo = url.searchParams.get("orderNo");
+	const orderNo = url.searchParams.get("order");
 	const { data, error } = await supabase
 		.from("thesis-orders")
 		.select()

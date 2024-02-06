@@ -96,7 +96,7 @@
 			<form id="receiptForm" action="/receipt">
 				<input
 					type="hidden"
-					name="orderNo"
+					name="order"
 					value={customerDetails.order_no}
 				/>
 			</form>
