@@ -4,6 +4,7 @@
 	import * as Dialog from "$lib/components/ui/dialog";
 	import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
 	import { Separator } from "$lib/components/ui/separator";
+	import { Form } from "formsnap";
 	import { MoreHorizontal } from "lucide-svelte";
 
 	export let supabase: any;
@@ -92,18 +93,28 @@
 			<DropdownMenu.Item on:click={() => (dialogOpen = true)}>
 				View details
 			</DropdownMenu.Item>
-			<DropdownMenu.Item disabled
-				on:click={() =>
-					window.open(`/receipts/${customerDetails.order_no}`)}
-				>View receipt</DropdownMenu.Item
-			>
+			<form id="receiptForm" action="/receipt">
+				<input
+					type="hidden"
+					name="orderNo"
+					value={customerDetails.order_no}
+				/>
+			</form>
+			<DropdownMenu.Item
+				on:click={() => {
+					const form = document.getElementById("receiptForm");
+					form?.submit();
+				}}
+				>View receipt
+			</DropdownMenu.Item>
 
 			<DropdownMenu.Separator />
 
 			<DropdownMenu.Item
 				class={buttonVariants({ variant: "destructive" })}
-				on:click={deleteOrder}>Delete order</DropdownMenu.Item
-			>
+				on:click={deleteOrder}
+				>Delete order
+			</DropdownMenu.Item>
 		</DropdownMenu.Content>
 	</DropdownMenu.Root>
 

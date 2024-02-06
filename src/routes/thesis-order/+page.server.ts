@@ -2,7 +2,7 @@ import { supabase } from "$lib/supabaseClient";
 import { fail } from "@sveltejs/kit";
 import dayjs from "dayjs";
 import type { SuperValidated } from "sveltekit-superforms";
-import { message, setError, superValidate } from "sveltekit-superforms/server";
+import { setError, superValidate } from "sveltekit-superforms/server";
 import type { Actions, PageServerLoad } from "./$types";
 import { thesisOrderFormSchema, type FormSchema } from "./schema";
 
