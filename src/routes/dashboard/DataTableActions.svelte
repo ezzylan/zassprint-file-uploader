@@ -4,7 +4,6 @@
 	import * as Dialog from "$lib/components/ui/dialog";
 	import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
 	import { Separator } from "$lib/components/ui/separator";
-	import { Form } from "formsnap";
 	import { MoreHorizontal } from "lucide-svelte";
 
 	export let supabase: any;
@@ -12,6 +11,7 @@
 
 	const thesisOrdersTable = "thesis-orders";
 	let currStatus: string;
+	let thesisFilePath: string;
 	let dialogOpen = false;
 
 	const getCustomerDetails = async () => {
@@ -22,6 +22,11 @@
 
 		if (data) {
 			currStatus = data[0].status;
+			const thesisFileUrl = data[0].thesis_file_url;
+			thesisFilePath = decodeURIComponent(
+				new URL(thesisFileUrl).pathname.split("/").pop()
+			);
+
 			return data[0];
 		}
 	};
@@ -40,6 +45,7 @@
 	};
 
 	const deleteOrder = async () => {
+		await supabase.storage.from("thesis-files").remove([thesisFilePath]);
 		const { error } = await supabase
 			.from(thesisOrdersTable)
 			.delete()

@@ -410,7 +410,12 @@
 		</AlertDialog.Header>
 		<AlertDialog.Footer>
 			<AlertDialog.Cancel>OK</AlertDialog.Cancel>
-			<AlertDialog.Action on:click={() => copyText(orderNo)}>
+			<AlertDialog.Action
+				on:click={() => {
+					copyText(orderNo);
+					toast.success("Order number copied!");
+				}}
+			>
 				Copy Order Number
 			</AlertDialog.Action>
 		</AlertDialog.Footer>

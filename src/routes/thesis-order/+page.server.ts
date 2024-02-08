@@ -1,3 +1,4 @@
+import { TELEGRAM_BOT_API_TOKEN } from "$env/static/private";
 import { supabase } from "$lib/supabaseClient";
 import { fail } from "@sveltejs/kit";
 import dayjs from "dayjs";
@@ -77,6 +78,23 @@ const insertDatabase = async (
 	});
 };
 
+const sendTeleBotAlert = async (orderNo: string) => {
+	let bodyContent = new FormData();
+	bodyContent.append("chat_id", "@zassprintkps");
+	bodyContent.append(
+		"text",
+		`New thesis order received: #${dayjs().format("YYMM")}${orderNo}`
+	);
+
+	await fetch(
+		`https://api.telegram.org/bot${TELEGRAM_BOT_API_TOKEN}/sendMessage`,
+		{
+			method: "POST",
+			body: bodyContent,
+		}
+	);
+};
+
 export const actions: Actions = {
 	default: async ({ request }) => {
 		const formData = await request.formData();
@@ -94,6 +112,7 @@ export const actions: Actions = {
 				.then((thesisFileUrl) =>
 					insertDatabase(formDataObj, thesisFileUrl, orderNo)
 				)
+				.then(() => sendTeleBotAlert(orderNo))
 				.catch(() => fail(400, { form }));
 		}
 
