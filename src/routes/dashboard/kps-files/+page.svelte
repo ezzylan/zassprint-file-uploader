@@ -1,13 +1,15 @@
 <script lang="ts">
+	import type { PageData } from "./$types";
+	export let data: PageData;
+
 	import { Button, buttonVariants } from "$lib/components/ui/button";
 	import * as Card from "$lib/components/ui/card";
 	import * as Dialog from "$lib/components/ui/dialog";
-
+	import { supabase } from "$lib/supabaseClient";
 	import { Download, Eye } from "lucide-svelte";
 
-	export let supabase: any;
-	export let kpsFolders: any;
-	export let kpsFiles: any;
+	let kpsFolders = data.kpsFolders;
+	let kpsFiles = data.kpsFiles;
 
 	const kpsFilesBucket = "kps-files";
 	let deletedFileNames = [] as string[];
@@ -63,14 +65,14 @@
 		kpsFiles = kpsFiles.filter(
 			(f: { folder: string }) => f.folder !== folderName
 		);
-		kpsFolders = kpsFolders.filter(
+		kpsFolders = kpsFolders?.filter(
 			(folder: { name: string }) => folder.name !== folderName
 		);
 	};
 </script>
 
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-	{#if kpsFolders.length > 0}
+	{#if kpsFolders && kpsFolders.length > 0}
 		{#each kpsFolders as folder}
 			<Card.Root>
 				<Card.Header>

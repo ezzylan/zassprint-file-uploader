@@ -11,7 +11,7 @@ export const GET: RequestHandler = async ({ url }) => {
 		.from("thesis-orders")
 		.select()
 		.eq("order_no", orderNo);
-	const thesisOrder = data ? data[0] : null;
+	const thesisOrder = data?.[0];
 
 	const existingPdfBytes = await read(receiptTemplate).arrayBuffer();
 	const receipt = await PDFDocument.load(existingPdfBytes);
@@ -124,9 +124,9 @@ export const GET: RequestHandler = async ({ url }) => {
 		size: 12,
 	});
 
+	// cd burn & label
 	let labelPrice,
 		totalLabelPrice = 0;
-	// cd burn & label
 	if (thesisOrder.cd_copies) {
 		// quantity
 		page.drawText(thesisOrder.cd_copies.toString(), {
@@ -160,12 +160,31 @@ export const GET: RequestHandler = async ({ url }) => {
 		});
 	}
 
+	// shipping price
+	let shippingPrice = 0;
+	if (thesisOrder.collection_method === "Delivery") {
+		shippingPrice = 20;
+		// price
+		page.drawText(shippingPrice.toFixed(2), {
+			x: width - 185,
+			y: height / 2 + 53,
+			size: 12,
+		});
+		// total price
+		page.drawText(shippingPrice.toFixed(2), {
+			x: width - 89,
+			y: height / 2 + 53,
+			size: 12,
+		});
+	}
+
 	// total overall
-	const totalOverallPrice =
+	let totalOverallPrice =
 		totalColorPrice +
 		totalBlackWhitePrice +
 		totalCoverPrice +
-		totalLabelPrice;
+		totalLabelPrice +
+		shippingPrice;
 	page.drawText(totalOverallPrice.toFixed(2), {
 		x: width - 93,
 		y: 337,

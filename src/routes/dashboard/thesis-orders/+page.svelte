@@ -1,7 +1,11 @@
 <script lang="ts">
+	import type { PageData } from "./$types";
+	export let data: PageData;
+
 	import { Button } from "$lib/components/ui/button";
 	import { Input } from "$lib/components/ui/input";
 	import * as Table from "$lib/components/ui/table";
+	import { supabase } from "$lib/supabaseClient";
 
 	import { ArrowUpDown } from "lucide-svelte";
 	import {
@@ -21,8 +25,7 @@
 	import DataTableCheckbox from "./DataTableCheckbox.svelte";
 	import DataTableDownloadButton from "./DataTableDownloadButton.svelte";
 
-	export let supabase: any;
-	export let thesisOrders;
+	const thesisOrders = data.thesisOrders;
 
 	const table = createTable(readable(thesisOrders), {
 		page: addPagination(),
@@ -108,7 +111,7 @@
 	const { selectedDataIds } = pluginStates.select;
 </script>
 
-{#if thesisOrders.length > 0}
+{#if thesisOrders && thesisOrders.length > 0}
 	<div>
 		<div class="flex items-center py-4">
 			<Input

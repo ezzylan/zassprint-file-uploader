@@ -7,6 +7,7 @@ import { checkOrderStatusFormSchema } from "./schema";
 export const load: PageServerLoad = async () => {
 	return {
 		form: await superValidate(checkOrderStatusFormSchema),
+		title: "",
 	};
 };
 

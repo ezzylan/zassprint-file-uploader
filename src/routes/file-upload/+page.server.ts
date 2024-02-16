@@ -7,6 +7,7 @@ import { fileUploadFormSchema } from "./schema";
 export const load: PageServerLoad = async () => {
 	return {
 		form: await superValidate(fileUploadFormSchema),
+		title: "File Uploader - ",
 	};
 };
 

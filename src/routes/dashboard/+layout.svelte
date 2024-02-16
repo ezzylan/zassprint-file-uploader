@@ -1,22 +1,15 @@
 <script lang="ts">
-	import type { PageData } from "./$types";
-	export let data: PageData;
+	import { goto } from "$app/navigation";
+	import { page } from "$app/stores";
 
 	import * as Alert from "$lib/components/ui/alert";
 	import { Button } from "$lib/components/ui/button";
 	import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
-	import { supabase } from "$lib/supabaseClient";
-
 	import * as Tabs from "$lib/components/ui/tabs";
 	import { AlertCircle, ChevronDown } from "lucide-svelte";
-	import KpsFiles from "./KpsFiles.svelte";
-	import ThesisOrders from "./ThesisOrders.svelte";
 
-	const kpsFolders = data.kpsFolders;
-	const kpsFiles = data.kpsFiles;
-	const thesisOrders = data.thesisOrders;
-
-	let dashboard = "KPS Files";
+	const currRoute = $page.route.id;
+	let currTab = currRoute?.split("/").pop() ?? "kps-files";
 </script>
 
 <div class="flex justify-between">
@@ -25,10 +18,14 @@
 	>
 		Dashboard
 	</h2>
-	<Tabs.Root bind:value={dashboard} class="hidden sm:block">
+	<Tabs.Root
+		bind:value={currTab}
+		onValueChange={(val) => goto(`/dashboard/${val}`)}
+		class="hidden sm:block"
+	>
 		<Tabs.List>
-			<Tabs.Trigger value="KPS Files">KPS Files</Tabs.Trigger>
-			<Tabs.Trigger value="Thesis Orders">Thesis Orders</Tabs.Trigger>
+			<Tabs.Trigger value="kps-files">KPS Files</Tabs.Trigger>
+			<Tabs.Trigger value="thesis-orders">Thesis Orders</Tabs.Trigger>
 		</Tabs.List>
 	</Tabs.Root>
 	<DropdownMenu.Root>
@@ -38,11 +35,14 @@
 			</Button>
 		</DropdownMenu.Trigger>
 		<DropdownMenu.Content>
-			<DropdownMenu.RadioGroup bind:value={dashboard}>
-				<DropdownMenu.RadioItem value="KPS Files">
+			<DropdownMenu.RadioGroup
+				bind:value={currTab}
+				onValueChange={(val) => goto(`/dashboard/${val}`)}
+			>
+				<DropdownMenu.RadioItem value="kps-files">
 					KPS Files
 				</DropdownMenu.RadioItem>
-				<DropdownMenu.RadioItem value="Thesis Orders">
+				<DropdownMenu.RadioItem value="thesis-orders">
 					Thesis Orders
 				</DropdownMenu.RadioItem>
 			</DropdownMenu.RadioGroup>
@@ -58,8 +58,4 @@
 	</Alert.Description>
 </Alert.Root>
 
-{#if dashboard == "KPS Files"}
-	<KpsFiles {supabase} {kpsFolders} {kpsFiles} />
-{:else}
-	<ThesisOrders {supabase} {thesisOrders} />
-{/if}
+<slot />

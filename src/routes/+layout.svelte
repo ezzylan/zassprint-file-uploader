@@ -1,10 +1,11 @@
 <script lang="ts">
+	import { page } from "$app/stores";
 	import { Toaster } from "$lib/components/ui/sonner";
 	import "../app.pcss";
 </script>
 
 <svelte:head>
-	<title>ZassPrint KPS</title>
+	<title>{$page.data.title}ZassPrint KPS</title>
 </svelte:head>
 
 <main class="container p-8">
@@ -15,13 +16,5 @@
 	</h1>
 	<slot />
 </main>
-
-<!-- <footer class="bg-primary text-secondary py-4">
-	<div class="container mx-auto px-4 md:px-6 lg:px-8">
-		<p class="leading-7 [&:not(:first-child)]:mt-6 text-center">
-			© 2024 ZassPrint. All rights reserved.
-		</p>
-	</div>
-</footer> -->
 
 <Toaster richColors position="top-right" />

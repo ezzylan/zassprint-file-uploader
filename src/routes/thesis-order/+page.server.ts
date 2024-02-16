@@ -10,6 +10,7 @@ import { thesisOrderFormSchema, type FormSchema } from "./schema";
 export const load: PageServerLoad = async () => {
 	return {
 		form: await superValidate(thesisOrderFormSchema),
+		title: "Thesis Order Form - ",
 	};
 };
 
@@ -20,33 +21,33 @@ const uploadFile = async (
 	const { data, error } = await supabase.storage
 		.from("thesis-files")
 		.upload(file.name, file);
+
 	if (error) return setError(form, "thesisFile", error.message);
 };
 
 const getPublicUrl = async (file: FormDataEntryValue) => {
-	const { data, error } = await supabase.storage
+	const { data, error } = supabase.storage
 		.from("thesis-files")
 		.getPublicUrl(file.name, { download: true });
-	return data ? (data.publicUrl as string) : error;
+
+	return data?.publicUrl;
 };
 
 const countExistingOrders = async () => {
 	const { data, error } = await supabase
 		.from("thesis-orders")
-		.select("created_at")
+		.select("order_no")
+		.order("order_no", { ascending: true })
 		.gte("created_at", `${dayjs().format("YYYY-MM")}-01`)
 		.lt("created_at", `${dayjs().add(1, "month").format("YYYY-MM")}-01`);
 
 	if (data) {
-		if (data.length === 0) {
-			return "001";
-		} else if (data.length < 9) {
-			return `00${data.length + 1}`;
-		} else if (data.length < 99) {
-			return `0${data.length + 1}`;
-		} else {
-			return `${data.length + 1}`;
-		}
+		const orderNo =
+			data.length === 0
+				? `${dayjs().format("YYMM")}001`
+				: (Number(data.pop()?.order_no) + 1).toString();
+
+		return orderNo;
 	}
 };
 
@@ -74,17 +75,14 @@ const insertDatabase = async (
 		collection_date: formDataObj.collectionDate,
 		collection_method: formDataObj.collectionMethod,
 		address: formDataObj.address,
-		order_no: `${dayjs().format("YYMM")}${orderNo}`,
+		order_no: orderNo,
 	});
 };
 
 const sendTeleBotAlert = async (orderNo: string) => {
 	let bodyContent = new FormData();
 	bodyContent.append("chat_id", "@zassprintkps");
-	bodyContent.append(
-		"text",
-		`New thesis order received: #${dayjs().format("YYMM")}${orderNo}`
-	);
+	bodyContent.append("text", `New thesis order received: #${orderNo}`);
 
 	await fetch(
 		`https://api.telegram.org/bot${TELEGRAM_BOT_API_TOKEN}/sendMessage`,
@@ -104,21 +102,18 @@ export const actions: Actions = {
 
 		const thesisFile = formData.get("thesisFile");
 		const formDataObj = Object.fromEntries(formData.entries());
-		const orderNo = (await countExistingOrders()) as string;
+		const orderNo = await countExistingOrders();
 
-		if (thesisFile) {
+		if (thesisFile && orderNo) {
 			uploadFile(thesisFile, form)
 				.then(() => getPublicUrl(thesisFile))
-				.then((thesisFileUrl) =>
+				.then((thesisFileUrl: string) =>
 					insertDatabase(formDataObj, thesisFileUrl, orderNo)
 				)
 				.then(() => sendTeleBotAlert(orderNo))
 				.catch(() => fail(400, { form }));
 		}
 
-		return {
-			form,
-			orderNo: `${dayjs().format("YYMM")}${orderNo}`,
-		};
+		return { form, orderNo };
 	},
 };
