@@ -2,7 +2,7 @@ import { supabase } from "$lib/supabaseClient";
 import type { PageServerLoad } from "./$types";
 
 const getThesisOrders = async () => {
-	const { data, error } = await supabase
+	const { data } = await supabase
 		.from("thesis-orders")
 		.select()
 		.order("order_no", { ascending: false });

@@ -54,7 +54,7 @@
 	<AlertCircle class="h-4 w-4" />
 	<Alert.Title>Heads up!</Alert.Title>
 	<Alert.Description>
-		Refresh the page to check for new files and orders.
+		{`Refresh the page to check for new ${currTab.split("-")[1]}.`}
 	</Alert.Description>
 </Alert.Root>
 

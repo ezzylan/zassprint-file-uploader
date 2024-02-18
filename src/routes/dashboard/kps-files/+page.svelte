@@ -15,27 +15,19 @@
 	let deletedFileNames = [] as string[];
 
 	const openFile = async (folderName: string, fileName: string) => {
-		const { data, error } = await supabase.storage
+		const { data } = await supabase.storage
 			.from(kpsFilesBucket)
 			.getPublicUrl(`${folderName}/${fileName}`);
 
-		if (error) {
-			console.error(error);
-		} else {
-			window.open(data.publicUrl);
-		}
+		window.open(data.publicUrl);
 	};
 
 	const downloadFile = async (folderName: string, fileName: string) => {
-		const { data, error } = await supabase.storage
+		const { data } = await supabase.storage
 			.from(kpsFilesBucket)
 			.getPublicUrl(`${folderName}/${fileName}`, { download: true });
 
-		if (error) {
-			console.error(error);
-		} else {
-			window.open(data.publicUrl);
-		}
+		window.open(data.publicUrl);
 	};
 
 	const removeFolder = async (folderName: string) => {
@@ -52,13 +44,9 @@
 		);
 
 		if (deletedFileNames.length > 0) {
-			const { data, error } = await supabase.storage
+			await supabase.storage
 				.from(kpsFilesBucket)
 				.remove(deletedFileNames);
-
-			if (error) {
-				console.error(error);
-			}
 		}
 		deletedFileNames = [];
 

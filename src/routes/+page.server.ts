@@ -21,7 +21,7 @@ export const actions: Actions = {
 		const orderNo = formData.get("orderNo");
 		let thesisOrder, status: string;
 
-		const { data, error } = await supabase
+		const { data } = await supabase
 			.from("thesis-orders")
 			.select()
 			.eq("order_no", orderNo);

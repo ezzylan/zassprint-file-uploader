@@ -53,11 +53,11 @@
 		: undefined;
 
 	let placeholder: DateValue = today(getLocalTimeZone()).add({ days: 2 });
-	let cdBurn = false;
+	let cdBurn = false,
+		addressDisabled = false,
+		dialogOpen = false,
+		orderNo = "";
 	$: cdDisabled = !cdBurn;
-	let addressDisabled = false;
-	let dialogOpen = false;
-	let orderNo = "";
 </script>
 
 <div class="flex justify-between">

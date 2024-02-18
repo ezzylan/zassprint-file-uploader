@@ -23,32 +23,28 @@ const uploadFile = async (
 		.upload(file.name, file);
 
 	if (error) return setError(form, "thesisFile", error.message);
+	return getPublicUrl(data.path);
 };
 
-const getPublicUrl = async (file: FormDataEntryValue) => {
-	const { data, error } = supabase.storage
+const getPublicUrl = (fileName: string) => {
+	const { data } = supabase.storage
 		.from("thesis-files")
-		.getPublicUrl(file.name, { download: true });
+		.getPublicUrl(fileName, { download: true });
 
-	return data?.publicUrl;
+	return data.publicUrl;
 };
 
 const countExistingOrders = async () => {
-	const { data, error } = await supabase
+	const { data } = await supabase
 		.from("thesis-orders")
 		.select("order_no")
 		.order("order_no", { ascending: true })
 		.gte("created_at", `${dayjs().format("YYYY-MM")}-01`)
 		.lt("created_at", `${dayjs().add(1, "month").format("YYYY-MM")}-01`);
 
-	if (data) {
-		const orderNo =
-			data.length === 0
-				? `${dayjs().format("YYMM")}001`
-				: (Number(data.pop()?.order_no) + 1).toString();
-
-		return orderNo;
-	}
+	return data?.length === 0
+		? `${dayjs().format("YYMM")}001`
+		: (Number(data?.pop()?.order_no) + 1).toString();
 };
 
 const insertDatabase = async (
@@ -56,7 +52,7 @@ const insertDatabase = async (
 	thesisFileUrl: string,
 	orderNo: string
 ) => {
-	const { error } = await supabase.from("thesis-orders").insert({
+	await supabase.from("thesis-orders").insert({
 		name: formDataObj.name,
 		phone_num: formDataObj.phoneNum,
 		matrix_num: formDataObj.matrixNum,
@@ -105,13 +101,20 @@ export const actions: Actions = {
 		const orderNo = await countExistingOrders();
 
 		if (thesisFile && orderNo) {
-			uploadFile(thesisFile, form)
-				.then(() => getPublicUrl(thesisFile))
-				.then((thesisFileUrl: string) =>
-					insertDatabase(formDataObj, thesisFileUrl, orderNo)
-				)
-				.then(() => sendTeleBotAlert(orderNo))
-				.catch(() => fail(400, { form }));
+			try {
+				// const thesisFilePath = (await uploadFile(
+				// 	thesisFile,
+				// 	form
+				// )) as string;
+				const thesisFileUrl = (await uploadFile(
+					thesisFile,
+					form
+				)) as string;
+				await insertDatabase(formDataObj, thesisFileUrl, orderNo);
+				await sendTeleBotAlert(orderNo);
+			} catch (error) {
+				fail(400, { form });
+			}
 		}
 
 		return { form, orderNo };

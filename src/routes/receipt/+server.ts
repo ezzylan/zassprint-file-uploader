@@ -7,7 +7,7 @@ import type { RequestHandler } from "./$types";
 
 export const GET: RequestHandler = async ({ url }) => {
 	const orderNo = url.searchParams.get("order");
-	const { data, error } = await supabase
+	const { data } = await supabase
 		.from("thesis-orders")
 		.select()
 		.eq("order_no", orderNo);

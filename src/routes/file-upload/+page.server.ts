@@ -22,7 +22,7 @@ export const actions: Actions = {
 		const files = formData.getAll("files");
 
 		for (const file of files) {
-			const { data, error } = await supabase.storage
+			const { error } = await supabase.storage
 				.from("kps-files")
 				.upload(`${name}/${file.name}`, file);
 

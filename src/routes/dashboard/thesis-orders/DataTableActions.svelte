@@ -1,5 +1,6 @@
 <script lang="ts">
 	import * as Accordion from "$lib/components/ui/accordion";
+	import * as AlertDialog from "$lib/components/ui/alert-dialog";
 	import { Button, buttonVariants } from "$lib/components/ui/button";
 	import * as Dialog from "$lib/components/ui/dialog";
 	import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
@@ -13,9 +14,10 @@
 	let currStatus: string;
 	let thesisFilePath: string;
 	let dialogOpen = false;
+	let alertDialogOpen = false;
 
 	const getCustomerDetails = async () => {
-		const { data, error } = await supabase
+		const { data } = await supabase
 			.from(thesisOrdersTable)
 			.select()
 			.eq("id", id);
@@ -32,30 +34,17 @@
 	};
 
 	const updateStatus = async (status: string) => {
-		const { error } = await supabase
+		await supabase
 			.from(thesisOrdersTable)
 			.update({ status: status })
 			.eq("id", id);
-
-		if (error) {
-			console.error(error);
-		} else {
-			location.reload();
-		}
+		location.reload();
 	};
 
 	const deleteOrder = async () => {
 		await supabase.storage.from("thesis-files").remove([thesisFilePath]);
-		const { error } = await supabase
-			.from(thesisOrdersTable)
-			.delete()
-			.eq("id", id);
-
-		if (error) {
-			console.error(error);
-		} else {
-			location.reload();
-		}
+		await supabase.from(thesisOrdersTable).delete().eq("id", id);
+		location.reload();
 	};
 </script>
 
@@ -77,7 +66,9 @@
 				<DropdownMenu.Label>Status</DropdownMenu.Label>
 				<DropdownMenu.RadioGroup
 					bind:value={currStatus}
-					onValueChange={(value) => updateStatus(value)}
+					onValueChange={(value) => {
+						if (value) updateStatus(value);
+					}}
 				>
 					<DropdownMenu.RadioItem value="pending">
 						Pending
@@ -118,7 +109,7 @@
 
 			<DropdownMenu.Item
 				class={buttonVariants({ variant: "destructive" })}
-				on:click={deleteOrder}
+				on:click={() => (alertDialogOpen = true)}
 				>Delete order
 			</DropdownMenu.Item>
 		</DropdownMenu.Content>
@@ -320,3 +311,24 @@
 		</Dialog.Content>
 	</Dialog.Root>
 {/await}
+
+<AlertDialog.Root bind:open={alertDialogOpen}>
+	<AlertDialog.Content>
+		<AlertDialog.Header>
+			<AlertDialog.Title>Are you absolutely sure?</AlertDialog.Title>
+			<AlertDialog.Description>
+				This action cannot be undone. This will permanently delete the
+				order from the database.
+			</AlertDialog.Description>
+		</AlertDialog.Header>
+		<AlertDialog.Footer>
+			<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+			<AlertDialog.Action
+				class={buttonVariants({ variant: "destructive" })}
+				on:click={deleteOrder}
+			>
+				Continue
+			</AlertDialog.Action>
+		</AlertDialog.Footer>
+	</AlertDialog.Content>
+</AlertDialog.Root>
