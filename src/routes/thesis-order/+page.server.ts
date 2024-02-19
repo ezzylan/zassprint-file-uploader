@@ -47,13 +47,23 @@ const countExistingOrders = async () => {
 		: (Number(data?.pop()?.order_no) + 1).toString();
 };
 
+const toTitleCase = (str: string) => {
+	return str
+		.toLowerCase()
+		.split(" ")
+		.map((word) => {
+			return word.charAt(0).toUpperCase() + word.slice(1);
+		})
+		.join(" ");
+};
+
 const insertDatabase = async (
 	formDataObj: any,
 	thesisFileUrl: string,
 	orderNo: string
 ) => {
 	await supabase.from("thesis-orders").insert({
-		name: formDataObj.name,
+		name: toTitleCase(formDataObj.name),
 		phone_num: formDataObj.phoneNum,
 		matrix_num: formDataObj.matrixNum,
 		thesis_type: formDataObj.thesisType,
@@ -75,10 +85,13 @@ const insertDatabase = async (
 	});
 };
 
-const sendTeleBotAlert = async (orderNo: string) => {
+const sendTeleBotAlert = async (orderNo: string, name: string) => {
 	let bodyContent = new FormData();
 	bodyContent.append("chat_id", "@zassprintkps");
-	bodyContent.append("text", `New thesis order received: #${orderNo}`);
+	bodyContent.append(
+		"text",
+		`New thesis order received: #${orderNo} ${toTitleCase(name)}`
+	);
 
 	await fetch(
 		`https://api.telegram.org/bot${TELEGRAM_BOT_API_TOKEN}/sendMessage`,
@@ -96,22 +109,19 @@ export const actions: Actions = {
 
 		if (!form.valid) return fail(400, { form });
 
+		const name = formData.get("name") as string;
 		const thesisFile = formData.get("thesisFile");
 		const formDataObj = Object.fromEntries(formData.entries());
 		const orderNo = await countExistingOrders();
 
-		if (thesisFile && orderNo) {
+		if (thesisFile) {
 			try {
-				// const thesisFilePath = (await uploadFile(
-				// 	thesisFile,
-				// 	form
-				// )) as string;
 				const thesisFileUrl = (await uploadFile(
 					thesisFile,
 					form
 				)) as string;
 				await insertDatabase(formDataObj, thesisFileUrl, orderNo);
-				await sendTeleBotAlert(orderNo);
+				await sendTeleBotAlert(orderNo, name);
 			} catch (error) {
 				fail(400, { form });
 			}
