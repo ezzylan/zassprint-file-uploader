@@ -13,11 +13,8 @@
 </script>
 
 <div class="flex justify-between">
-	<h2
-		class="scroll-m-20 pb-8 text-3xl font-semibold tracking-tight transition-colors first:mt-0"
-	>
-		Dashboard
-	</h2>
+	<h2>Dashboard</h2>
+
 	<Tabs.Root
 		bind:value={currTab}
 		onValueChange={(val) => goto(`/dashboard/${val}`)}
@@ -28,6 +25,7 @@
 			<Tabs.Trigger value="thesis-orders">Thesis Orders</Tabs.Trigger>
 		</Tabs.List>
 	</Tabs.Root>
+	
 	<DropdownMenu.Root>
 		<DropdownMenu.Trigger asChild let:builder>
 			<Button variant="outline" builders={[builder]} class="sm:hidden">

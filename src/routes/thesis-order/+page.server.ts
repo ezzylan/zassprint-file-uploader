@@ -2,21 +2,26 @@ import { TELEGRAM_BOT_API_TOKEN } from "$env/static/private";
 import { supabase } from "$lib/supabaseClient";
 import { fail } from "@sveltejs/kit";
 import dayjs from "dayjs";
-import type { SuperValidated } from "sveltekit-superforms";
-import { setError, superValidate } from "sveltekit-superforms/server";
+import type { Infer, SuperValidated } from "sveltekit-superforms";
+import { zod } from "sveltekit-superforms/adapters";
+import {
+	setError,
+	superValidate,
+	withFiles,
+} from "sveltekit-superforms/server";
 import type { Actions, PageServerLoad } from "./$types";
 import { thesisOrderFormSchema, type FormSchema } from "./schema";
 
 export const load: PageServerLoad = async () => {
 	return {
-		form: await superValidate(thesisOrderFormSchema),
+		form: await superValidate(zod(thesisOrderFormSchema)),
 		title: "Thesis Order Form - ",
 	};
 };
 
 const uploadFile = async (
-	file: FormDataEntryValue,
-	form: SuperValidated<FormSchema>
+	file: File,
+	form: SuperValidated<Infer<FormSchema>>
 ) => {
 	const { data, error } = await supabase.storage
 		.from("thesis-files")
@@ -58,29 +63,34 @@ const toTitleCase = (str: string) => {
 };
 
 const insertDatabase = async (
-	formDataObj: any,
-	thesisFileUrl: string,
+	form: SuperValidated<Infer<FormSchema>>,
 	orderNo: string
 ) => {
+	const thesisFile = form.data.thesisFile as File;
+	const thesisFileUrl = (await uploadFile(thesisFile, form)) as string;
+
 	await supabase.from("thesis-orders").insert({
-		name: toTitleCase(formDataObj.name),
-		phone_num: formDataObj.phoneNum,
-		matrix_num: formDataObj.matrixNum,
-		thesis_type: formDataObj.thesisType,
-		cover_color: formDataObj.coverColor,
-		thesis_title: formDataObj.thesisTitle,
-		faculty: formDataObj.faculty,
-		year: formDataObj.year,
-		study_acronym: formDataObj.studyAcronym,
-		color_pages: formDataObj.colorPages,
-		black_white_pages: formDataObj.blackWhitePages,
-		copies: formDataObj.copies,
+		name: toTitleCase(form.data.name),
+		phone_num: form.data.phoneNum,
+		matrix_num: form.data.matrixNum,
+		thesis_type: form.data.thesisType,
+		cover_color: form.data.coverColor,
+		thesis_title: form.data.thesisTitle,
+		faculty: form.data.faculty,
+		year: form.data.year,
+		study_acronym: form.data.studyAcronym,
+		color_pages: form.data.colorPages,
+		black_white_pages: form.data.blackWhitePages,
+		copies: form.data.copies,
 		thesis_file_url: thesisFileUrl,
-		cd_label: formDataObj.cdBurn === "true" ? formDataObj.cdLabel : null,
-		cd_copies: formDataObj.cdBurn === "true" ? formDataObj.cdCopies : null,
-		collection_date: formDataObj.collectionDate,
-		collection_method: formDataObj.collectionMethod,
-		address: formDataObj.address,
+		cd_label: form.data.cdBurn ? form.data.cdLabel : null,
+		cd_copies: form.data.cdBurn ? form.data.cdCopies : null,
+		collection_date: form.data.collectionDate,
+		collection_method: form.data.collectionMethod,
+		address:
+			form.data.collectionMethod === "Delivery"
+				? form.data.address
+				: null,
 		order_no: orderNo,
 	});
 };
@@ -104,29 +114,17 @@ const sendTeleBotAlert = async (orderNo: string, name: string) => {
 
 export const actions: Actions = {
 	default: async ({ request }) => {
-		const formData = await request.formData();
-		const form = await superValidate(formData, thesisOrderFormSchema);
+		const form = await superValidate(request, zod(thesisOrderFormSchema));
+		if (!form.valid) return fail(400, withFiles({ form }));
 
-		if (!form.valid) return fail(400, { form });
-
-		const name = formData.get("name") as string;
-		const thesisFile = formData.get("thesisFile");
-		const formDataObj = Object.fromEntries(formData.entries());
 		const orderNo = await countExistingOrders();
-
-		if (thesisFile) {
-			try {
-				const thesisFileUrl = (await uploadFile(
-					thesisFile,
-					form
-				)) as string;
-				await insertDatabase(formDataObj, thesisFileUrl, orderNo);
-				await sendTeleBotAlert(orderNo, name);
-			} catch (error) {
-				fail(400, { form });
-			}
+		try {
+			await insertDatabase(form, orderNo);
+			await sendTeleBotAlert(orderNo, form.data.name);
+		} catch (error) {
+			fail(400, withFiles({ form }));
 		}
 
-		return { form, orderNo };
+		return withFiles({ form, orderNo });
 	},
 };

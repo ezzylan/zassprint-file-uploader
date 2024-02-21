@@ -193,8 +193,6 @@
 			</Card.Root>
 		{/each}
 	{:else}
-		<h4 class="scroll-m-20 text-xl font-semibold tracking-tight">
-			No files available...
-		</h4>
+		<h4>No files available...</h4>
 	{/if}
 </div>

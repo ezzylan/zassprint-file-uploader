@@ -1,34 +1,31 @@
 import { supabase } from "$lib/supabaseClient";
 import { fail } from "@sveltejs/kit";
+import { zod } from "sveltekit-superforms/adapters";
 import { setError, superValidate } from "sveltekit-superforms/server";
 import type { Actions, PageServerLoad } from "./$types";
-import { checkOrderStatusFormSchema } from "./schema";
+import { orderStatusFormSchema } from "./schema";
 
 export const load: PageServerLoad = async () => {
 	return {
-		form: await superValidate(checkOrderStatusFormSchema),
+		form: await superValidate(zod(orderStatusFormSchema)),
 		title: "",
 	};
 };
 
 export const actions: Actions = {
 	default: async ({ request }) => {
-		const formData = await request.formData();
-		const form = await superValidate(formData, checkOrderStatusFormSchema);
-
+		const form = await superValidate(request, zod(orderStatusFormSchema));
 		if (!form.valid) return fail(400, { form });
-
-		const orderNo = formData.get("orderNo");
-		let thesisOrder, status: string;
 
 		const { data } = await supabase
 			.from("thesis-orders")
-			.select()
-			.eq("order_no", orderNo);
+			.select("status")
+			.eq("order_no", form.data.orderNo);
+
+		let status: string;
 
 		if (data && data.length > 0) {
-			thesisOrder = data[0];
-			status = thesisOrder.status;
+			status = data[0].status;
 		} else {
 			return setError(
 				form,

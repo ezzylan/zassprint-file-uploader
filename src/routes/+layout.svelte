@@ -9,11 +9,7 @@
 </svelte:head>
 
 <main class="container p-8">
-	<h1
-		class="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl pb-8"
-	>
-		ZassPrint KPS
-	</h1>
+	<h1 class="pb-8">ZassPrint KPS</h1>
 	<slot />
 </main>
 

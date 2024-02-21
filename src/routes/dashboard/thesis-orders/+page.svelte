@@ -217,7 +217,5 @@
 		</div>
 	</div>
 {:else}
-	<h4 class="scroll-m-20 text-xl font-semibold tracking-tight">
-		No orders available...
-	</h4>
+	<h4>No orders available...</h4>
 {/if}

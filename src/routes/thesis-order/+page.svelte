@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { PageData } from "./$types";
+	import type { ActionData, PageData } from "./$types";
 	export let data: PageData;
 
 	import * as Alert from "$lib/components/ui/alert";
@@ -8,8 +8,12 @@
 	import { Calendar } from "$lib/components/ui/calendar";
 	import * as Dialog from "$lib/components/ui/dialog";
 	import * as Form from "$lib/components/ui/form";
+	import { Input } from "$lib/components/ui/input";
 	import * as Popover from "$lib/components/ui/popover";
+	import * as Select from "$lib/components/ui/select";
 	import { Separator } from "$lib/components/ui/separator";
+	import { Switch } from "$lib/components/ui/switch";
+	import { Textarea } from "$lib/components/ui/textarea";
 	import { cn } from "$lib/utils";
 
 	import {
@@ -22,50 +26,76 @@
 	import { AlertCircle, CalendarIcon } from "lucide-svelte";
 	import { copyText } from "svelte-copy";
 	import { toast } from "svelte-sonner";
-	import { superForm } from "sveltekit-superforms/client";
+	import { superForm, type FormResult } from "sveltekit-superforms";
+	import { zodClient } from "sveltekit-superforms/adapters";
 	import { thesisOrderFormSchema } from "./schema";
 
-	const theForm = superForm(data.form, {
-		validators: thesisOrderFormSchema,
+	const form = superForm(data.form, {
+		validators: zodClient(thesisOrderFormSchema),
 		taintedMessage: null,
 		onSubmit: () => {
 			toast.loading("Submitting...");
 		},
-		onResult: ({ result }) => {
-			if (result.status === 200) {
+		onResult: (event) => {
+			const result = event.result as FormResult<ActionData>;
+			if (result.type === "success") {
 				dialogOpen = true;
-				orderNo = result.data.orderNo;
+				orderNo = result.data?.orderNo as string;
 			}
-			if (result.status === 400) {
+			if (result.type === "failure") {
 				toast.error("Sorry, there was an error!");
 			}
 		},
 	});
 
-	const { form: formStore } = theForm;
+	const { form: formData, enhance } = form;
 
-	const df = new DateFormatter("en-US", {
-		dateStyle: "long",
-	});
+	$: selectedThesisType = $formData.thesisType
+		? {
+				label: $formData.thesisType,
+				value: $formData.thesisType,
+			}
+		: undefined;
 
-	let value: DateValue | undefined = $formStore.collectionDate
-		? parseDate($formStore.collectionDate)
+	$: selectedCoverColor = $formData.coverColor
+		? {
+				label: $formData.coverColor,
+				value: $formData.coverColor,
+			}
+		: undefined;
+
+	$: selectedCdLabel = $formData.cdLabel
+		? {
+				label: $formData.cdLabel,
+				value: $formData.cdLabel,
+			}
+		: undefined;
+
+	$: selectedCollectionMethod = $formData.collectionMethod
+		? {
+				label: $formData.collectionMethod,
+				value: $formData.collectionMethod,
+			}
+		: undefined;
+
+	const df = new DateFormatter("en-US", { dateStyle: "long" });
+
+	let value: DateValue | undefined = $formData.collectionDate
+		? parseDate($formData.collectionDate)
 		: undefined;
 
 	let placeholder: DateValue = today(getLocalTimeZone()).add({ days: 2 });
+
 	let cdBurn = false,
 		addressDisabled = false,
 		dialogOpen = false,
-		orderNo = "";
-	$: cdDisabled = !cdBurn;
+		orderNo: string;
+
+	$: cdDisabled = cdBurn ? "grid" : "hidden";
 </script>
 
 <div class="flex justify-between">
-	<h2
-		class="scroll-m-20 pb-2 text-3xl font-semibold tracking-tight transition-colors first:mt-0"
-	>
-		Thesis Hard/Softbound
-	</h2>
+	<h2>Thesis Hard/Softbound</h2>
 
 	<Dialog.Root>
 		<Dialog.Trigger class={buttonVariants({ variant: "destructive" })}>
@@ -107,240 +137,305 @@
 	</Alert.Description>
 </Alert.Root>
 
-<Form.Root
-	method="POST"
-	form={theForm}
-	schema={thesisOrderFormSchema}
-	let:config
-	enctype="multipart/form-data"
-	class="mt-6"
-	controlled
->
+<form method="POST" enctype="multipart/form-data" class="mt-6" use:enhance>
 	<div class="grid grid-cols-1 gap-2 sm:grid-cols-3 sm:gap-4">
-		<Form.Field {config} name="name">
-			<Form.Item>
+		<Form.Field {form} name="name">
+			<Form.Control let:attrs>
 				<Form.Label>Full Name</Form.Label>
-				<Form.Input required />
-				<Form.Description>
-					Your full name in capital letters.
-				</Form.Description>
-				<Form.Validation />
-			</Form.Item>
+				<Input {...attrs} bind:value={$formData.name} required />
+			</Form.Control>
+			<Form.Description>Your full name.</Form.Description>
+			<Form.FieldErrors />
 		</Form.Field>
-		<Form.Field {config} name="phoneNum">
-			<Form.Item>
+		<Form.Field {form} name="phoneNum">
+			<Form.Control let:attrs>
 				<Form.Label>Phone Number</Form.Label>
-				<Form.Input type="tel" required />
-				<Form.Description>
-					Your phone number without dashes and spaces.
-				</Form.Description>
-				<Form.Validation />
-			</Form.Item>
+				<Input
+					{...attrs}
+					bind:value={$formData.phoneNum}
+					type="tel"
+					required
+				/>
+			</Form.Control>
+			<Form.Description>
+				Your phone number without dashes and spaces.
+			</Form.Description>
+			<Form.FieldErrors />
 		</Form.Field>
-		<Form.Field {config} name="matrixNum">
-			<Form.Item>
+		<Form.Field {form} name="matrixNum">
+			<Form.Control let:attrs>
 				<Form.Label>Matrix Number</Form.Label>
-				<Form.Input required />
-				<Form.Validation />
-			</Form.Item>
+				<Input {...attrs} bind:value={$formData.matrixNum} required />
+			</Form.Control>
+			<Form.FieldErrors />
 		</Form.Field>
 	</div>
 
 	<Separator class="my-6" />
 
 	<div class="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-4">
-		<Form.Field {config} name="thesisType">
-			<Form.Item>
+		<Form.Field {form} name="thesisType">
+			<Form.Control let:attrs>
 				<Form.Label>Type of Thesis</Form.Label>
-				<Form.Select required>
-					<Form.SelectTrigger placeholder="Select thesis type" />
-					<Form.SelectContent>
-						<Form.SelectItem value="Hard Cover">
-							Hard Cover
-						</Form.SelectItem>
-						<Form.SelectItem value="Soft Cover">
-							Soft Cover
-						</Form.SelectItem>
-						<Form.SelectItem value="Comb Binding">
+				<Select.Root
+					selected={selectedThesisType}
+					onSelectedChange={(v) => {
+						v && ($formData.thesisType = v.value);
+					}}
+					required
+				>
+					<Select.Trigger {...attrs}>
+						<Select.Value placeholder="Select thesis type" />
+					</Select.Trigger>
+					<Select.Content>
+						<Select.Item value="Hard Cover">Hard Cover</Select.Item>
+						<Select.Item value="Soft Cover">Soft Cover</Select.Item>
+						<Select.Item value="Comb Binding">
 							Comb Binding
-						</Form.SelectItem>
-						<Form.SelectItem value="Tape Binding">
+						</Select.Item>
+						<Select.Item value="Tape Binding">
 							Tape Binding
-						</Form.SelectItem>
-					</Form.SelectContent>
-				</Form.Select>
-				<Form.Validation />
-			</Form.Item>
+						</Select.Item>
+					</Select.Content>
+				</Select.Root>
+				<input
+					hidden
+					bind:value={$formData.thesisType}
+					name={attrs.name}
+				/>
+			</Form.Control>
+			<Form.FieldErrors />
 		</Form.Field>
-		<Form.Field {config} name="coverColor">
-			<Form.Item>
+		<Form.Field {form} name="coverColor">
+			<Form.Control let:attrs>
 				<Form.Label>Cover Color</Form.Label>
-				<Form.Select required>
-					<Form.SelectTrigger placeholder="Select cover color" />
-					<Form.SelectContent>
-						<Form.SelectItem value="Research Report (Navy Blue)">
+				<Select.Root
+					selected={selectedCoverColor}
+					onSelectedChange={(v) => {
+						v && ($formData.coverColor = v.value);
+					}}
+					required
+				>
+					<Select.Trigger {...attrs}>
+						<Select.Value placeholder="Select cover color" />
+					</Select.Trigger>
+					<Select.Content>
+						<Select.Item value="Research Report (Navy Blue)">
 							Research Report (Navy Blue)
-						</Form.SelectItem>
-						<Form.SelectItem
+						</Select.Item>
+						<Select.Item
 							value="Dissertation/Thesis (Dark Red/Maroon)"
 						>
 							Dissertation/Thesis (Dark Red/Maroon)
-						</Form.SelectItem>
-						<Form.SelectItem value="Ocean Blue">
-							Ocean Blue
-						</Form.SelectItem>
-						<Form.SelectItem value="Plastic Cover">
+						</Select.Item>
+						<Select.Item value="Ocean Blue">Ocean Blue</Select.Item>
+						<Select.Item value="Plastic Cover">
 							Plastic Cover
-						</Form.SelectItem>
-					</Form.SelectContent>
-				</Form.Select>
-				<Form.Validation />
-			</Form.Item>
+						</Select.Item>
+					</Select.Content>
+				</Select.Root>
+				<input
+					hidden
+					bind:value={$formData.coverColor}
+					name={attrs.name}
+				/>
+			</Form.Control>
+			<Form.FieldErrors />
 		</Form.Field>
 	</div>
 
 	<Separator class="my-6" />
 
 	<div class="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-4">
-		<Form.Field {config} name="thesisTitle">
-			<Form.Item>
+		<Form.Field {form} name="thesisTitle">
+			<Form.Control let:attrs>
 				<Form.Label>Thesis Title</Form.Label>
-				<Form.Input required />
-				<Form.Description>
-					Your thesis title in capital letters.
-				</Form.Description>
-				<Form.Validation />
-			</Form.Item>
+				<Input {...attrs} bind:value={$formData.thesisTitle} required />
+			</Form.Control>
+			<Form.FieldErrors />
 		</Form.Field>
-		<Form.Field {config} name="faculty">
-			<Form.Item>
+		<Form.Field {form} name="faculty">
+			<Form.Control let:attrs>
 				<Form.Label>Faculty</Form.Label>
-				<Form.Input required />
-				<Form.Description>
-					Your faculty's full name in capital letters.
-				</Form.Description>
-				<Form.Validation />
-			</Form.Item>
+				<Input {...attrs} bind:value={$formData.faculty} required />
+			</Form.Control>
+			<Form.Description>Your faculty's full name.</Form.Description>
+			<Form.FieldErrors />
 		</Form.Field>
-		<Form.Field {config} name="year">
-			<Form.Item>
+		<Form.Field {form} name="year">
+			<Form.Control let:attrs>
 				<Form.Label>Year</Form.Label>
-				<Form.Input type="number" min="2024" required />
-				<Form.Validation />
-			</Form.Item>
+				<Input
+					{...attrs}
+					bind:value={$formData.year}
+					type="number"
+					min="2024"
+					required
+				/>
+			</Form.Control>
+			<Form.FieldErrors />
 		</Form.Field>
-		<Form.Field {config} name="studyAcronym">
-			<Form.Item>
+		<Form.Field {form} name="studyAcronym">
+			<Form.Control let:attrs>
 				<Form.Label>Study Acronym</Form.Label>
-				<Form.Input required />
-				<Form.Description>
-					Your study acronym, i.e. PhD, MEngSc.
-				</Form.Description>
-				<Form.Validation />
-			</Form.Item>
+				<Input
+					{...attrs}
+					bind:value={$formData.studyAcronym}
+					required
+				/>
+			</Form.Control>
+			<Form.Description>
+				Your study acronym, i.e. PhD, MEngSc.
+			</Form.Description>
+			<Form.FieldErrors />
 		</Form.Field>
 	</div>
 
 	<Separator class="my-6" />
 
 	<div class="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-4">
-		<Form.Field {config} name="colorPages">
-			<Form.Item>
+		<Form.Field {form} name="colorPages">
+			<Form.Control let:attrs>
 				<Form.Label>Number of Color Pages</Form.Label>
-				<Form.Input type="number" min="0" required />
-				<Form.Description>RM1.50 per page.</Form.Description>
-				<Form.Validation />
-			</Form.Item>
+				<Input
+					{...attrs}
+					bind:value={$formData.colorPages}
+					type="number"
+					min="0"
+					required
+				/>
+			</Form.Control>
+			<Form.Description>RM1.50 per page.</Form.Description>
+			<Form.FieldErrors />
 		</Form.Field>
-		<Form.Field {config} name="blackWhitePages">
-			<Form.Item>
+		<Form.Field {form} name="blackWhitePages">
+			<Form.Control let:attrs>
 				<Form.Label>Number of Black & White Pages</Form.Label>
-				<Form.Input type="number" min="0" required />
-				<Form.Description>RM0.15 per page.</Form.Description>
-				<Form.Validation />
-			</Form.Item>
+				<Input
+					{...attrs}
+					bind:value={$formData.blackWhitePages}
+					type="number"
+					min="0"
+					required
+				/>
+			</Form.Control>
+			<Form.Description>RM0.15 per page.</Form.Description>
+			<Form.FieldErrors />
 		</Form.Field>
-		<Form.Field {config} name="copies">
-			<Form.Item>
+		<Form.Field {form} name="copies">
+			<Form.Control let:attrs>
 				<Form.Label>Number of Copies</Form.Label>
-				<Form.Input type="number" min="1" required />
-				<Form.Validation />
-			</Form.Item>
+				<Input
+					{...attrs}
+					bind:value={$formData.copies}
+					type="number"
+					min="1"
+					required
+				/>
+			</Form.Control>
+			<Form.FieldErrors />
 		</Form.Field>
-		<Form.Field {config} name="thesisFile">
-			<Form.Item>
+		<Form.Field {form} name="thesisFile">
+			<Form.Control let:attrs>
 				<Form.Label>Upload Your Thesis File Here</Form.Label>
-				<Form.Input type="file" required />
-				<Form.Description>In PDF format.</Form.Description>
-				<Form.Validation />
-			</Form.Item>
+				<Input
+					{...attrs}
+					accept="application/pdf"
+					on:input={(e) =>
+						($formData.thesisFile =
+							e.currentTarget.files?.item(0) ?? null)}
+					type="file"
+					required
+				/>
+			</Form.Control>
+			<Form.Description>In PDF format only.</Form.Description>
+			<Form.FieldErrors />
 		</Form.Field>
 	</div>
 
 	<Separator class="my-6" />
 
-	<Form.Field {config} name="cdBurn">
-		<Form.Item class="flex flex-row items-start space-x-3 space-y-0 pb-4">
-			<Form.Checkbox onCheckedChange={() => (cdBurn = !cdBurn)} />
-			<div class="space-y-1 leading-none">
+	<Form.Field {form} name="cdBurn">
+		<Form.Control let:attrs>
+			<div class="flex items-center space-x-2">
+				<Switch
+					includeInput
+					{...attrs}
+					bind:checked={$formData.cdBurn}
+					onCheckedChange={() => (cdBurn = !cdBurn)}
+				/>
 				<Form.Label>CD Burn</Form.Label>
 			</div>
-		</Form.Item>
+		</Form.Control>
 	</Form.Field>
 
-	<div class="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-4">
-		<Form.Field {config} name="cdLabel">
-			<Form.Item>
+	<div class={`${cdDisabled} grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-4 pt-4`}>
+		<Form.Field {form} name="cdLabel">
+			<Form.Control let:attrs>
 				<Form.Label>CD Label</Form.Label>
-				<Form.Select bind:disabled={cdDisabled}>
-					<Form.SelectTrigger placeholder="Select CD label" />
-					<Form.SelectContent>
-						<Form.SelectItem value="Sticker Label">
+				<Select.Root
+					selected={selectedCdLabel}
+					onSelectedChange={(v) => {
+						v && ($formData.cdLabel = v.value);
+					}}
+				>
+					<Select.Trigger {...attrs}>
+						<Select.Value placeholder="Select CD label" />
+					</Select.Trigger>
+					<Select.Content>
+						<Select.Item value="Sticker Label">
 							Sticker Label
-						</Form.SelectItem>
-						<Form.SelectItem value="Paper Label">
+						</Select.Item>
+						<Select.Item value="Paper Label">
 							Paper Label
-						</Form.SelectItem>
-					</Form.SelectContent>
-				</Form.Select>
-				<Form.Description>
-					Sticker label (RM10/pc), paper label (RM5/pc).
-				</Form.Description>
-				<Form.Validation />
-			</Form.Item>
+						</Select.Item>
+					</Select.Content>
+				</Select.Root>
+				<input
+					hidden
+					bind:value={$formData.cdLabel}
+					name={attrs.name}
+				/>
+			</Form.Control>
+			<Form.Description>
+				Sticker label (RM10/pc), paper label (RM5/pc).
+			</Form.Description>
+			<Form.FieldErrors />
 		</Form.Field>
-		<Form.Field {config} name="cdCopies">
-			<Form.Item>
+		<Form.Field {form} name="cdCopies">
+			<Form.Control let:attrs>
 				<Form.Label>Number of CD Copies</Form.Label>
-				<Form.Input type="number" min="0" bind:disabled={cdDisabled} />
-				<Form.Validation />
-			</Form.Item>
+				<Input
+					{...attrs}
+					bind:value={$formData.cdCopies}
+					type="number"
+					min="0"
+				/>
+			</Form.Control>
+			<Form.FieldErrors />
 		</Form.Field>
 	</div>
 
 	<Separator class="my-6" />
 
 	<div class="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-4 mb-3">
-		<Form.Field {config} name="collectionDate">
-			<Form.Item class="flex flex-col gap-1">
+		<Form.Field {form} name="collectionDate" class="flex flex-col gap-1">
+			<Form.Control let:attrs>
 				<Form.Label for="collectionDate">Collection Date</Form.Label>
 				<Popover.Root>
-					<Form.Control id="collectionDate" let:attrs>
-						<Popover.Trigger
-							id="collectionDate"
-							{...attrs}
-							class={cn(
-								buttonVariants({ variant: "outline" }),
-								"pl-4 justify-start text-left font-normal",
-								!value && "text-muted-foreground"
-							)}
-						>
-							{value
-								? df.format(value.toDate(getLocalTimeZone()))
-								: "Pick a date"}
-							<CalendarIcon class="ml-auto h-4 w-4 opacity-50" />
-						</Popover.Trigger>
-					</Form.Control>
+					<Popover.Trigger
+						{...attrs}
+						class={cn(
+							buttonVariants({ variant: "outline" }),
+							"justify-start pl-4 text-left font-normal",
+							!value && "text-muted-foreground"
+						)}
+					>
+						{value
+							? df.format(value.toDate(getLocalTimeZone()))
+							: "Pick a date"}
+						<CalendarIcon class="ml-auto h-4 w-4 opacity-50" />
+					</Popover.Trigger>
 					<Popover.Content class="w-auto p-0" side="top">
 						<Calendar
 							bind:value
@@ -351,11 +446,9 @@
 							calendarLabel="Collection date"
 							initialFocus
 							onValueChange={(v) => {
-								if (v) {
-									$formStore.collectionDate = v.toString();
-								} else {
-									$formStore.collectionDate = "";
-								}
+								$formData.collectionDate = v
+									? v.toString()
+									: "";
 							}}
 						/>
 					</Popover.Content>
@@ -363,42 +456,61 @@
 				<Form.Description
 					>Your thesis will be finished after 2 working days.</Form.Description
 				>
-				<Form.Validation />
-			</Form.Item>
+				<Form.FieldErrors />
+				<input
+					hidden
+					value={$formData.collectionDate}
+					name={attrs.name}
+				/>
+			</Form.Control>
 		</Form.Field>
-		<Form.Field {config} name="collectionMethod">
-			<Form.Item>
+		<Form.Field {form} name="collectionMethod">
+			<Form.Control let:attrs>
 				<Form.Label>Collection Method</Form.Label>
-				<Form.Select
+				<Select.Root
 					required
-					onSelectedChange={(e) =>
-						(addressDisabled =
-							e?.value === "Pick Up" ? true : false)}
+					selected={selectedCollectionMethod}
+					onSelectedChange={(v) => {
+						if (v) {
+							$formData.collectionMethod = v.value;
+							addressDisabled =
+								v.value === "Pick Up" ? true : false;
+						}
+					}}
 				>
-					<Form.SelectTrigger placeholder="Select thesis type" />
-					<Form.SelectContent>
-						<Form.SelectItem value="Delivery">
-							Delivery
-						</Form.SelectItem>
-						<Form.SelectItem value="Pick Up">
-							Pick Up
-						</Form.SelectItem>
-					</Form.SelectContent>
-				</Form.Select>
-				<Form.Validation />
-			</Form.Item>
+					<Select.Trigger {...attrs}>
+						<Select.Value placeholder="Select thesis type" />
+					</Select.Trigger>
+					<Select.Content>
+						<Select.Item value="Delivery">Delivery</Select.Item>
+						<Select.Item value="Pick Up">Pick Up</Select.Item>
+					</Select.Content>
+				</Select.Root>
+				<input
+					hidden
+					bind:value={$formData.collectionMethod}
+					name={attrs.name}
+				/>
+			</Form.Control>
+			<Form.FieldErrors />
 		</Form.Field>
 	</div>
 
-	<Form.Field {config} name="address">
-		<Form.Item>
+	<Form.Field {form} name="address">
+		<Form.Control let:attrs>
 			<Form.Label>Address</Form.Label>
-			<Form.Textarea class="resize-none" disabled={addressDisabled} />
-			<Form.Validation />
-		</Form.Item>
+			<Textarea
+				{...attrs}
+				placeholder="Write your full address here..."
+				class="resize-none"
+				bind:value={$formData.address}
+				disabled={addressDisabled}
+			/>
+		</Form.Control>
+		<Form.FieldErrors />
 	</Form.Field>
 	<Form.Button class="mt-4">Submit</Form.Button>
-</Form.Root>
+</form>
 
 <AlertDialog.Root bind:open={dialogOpen}>
 	<AlertDialog.Content>

@@ -4,63 +4,63 @@
 
 	import * as Dialog from "$lib/components/ui/dialog";
 	import * as Form from "$lib/components/ui/form";
-	import type { FormOptions } from "formsnap";
-	import { toast } from "svelte-sonner";
-	import { fileUploadFormSchema, type FormSchema } from "./schema";
+	import { Input } from "$lib/components/ui/input";
 
-	const options: FormOptions<FormSchema> = {
+	import { toast } from "svelte-sonner";
+	import { superForm } from "sveltekit-superforms";
+	import { zodClient } from "sveltekit-superforms/adapters";
+	import { fileUploadFormSchema } from "./schema";
+
+	const form = superForm(data.form, {
+		validators: zodClient(fileUploadFormSchema),
 		onSubmit() {
 			toast.loading("Submitting...");
 		},
-		onResult({ result }) {
-			if (result.status === 200) {
+		onUpdated({ form }) {
+			if (form.valid) {
 				dialogOpen = true;
-			}
-			if (result.status === 400) {
+			} else {
 				toast.error("Sorry, there was an error!");
 			}
 		},
-	};
+	});
 
+	const { form: formData, enhance } = form;
 	let dialogOpen = false;
 </script>
 
-<h2
-	class="scroll-m-20 pb-8 text-3xl font-semibold tracking-tight transition-colors first:mt-0"
->
-	Upload your files here
-</h2>
+<h2>Upload your files here</h2>
 
-<Form.Root
-	method="POST"
-	form={data.form}
-	{options}
-	schema={fileUploadFormSchema}
-	let:config
-	enctype="multipart/form-data"
->
-	<Form.Field {config} name="name">
-		<Form.Item>
+<form method="POST" enctype="multipart/form-data" use:enhance>
+	<Form.Field {form} name="name">
+		<Form.Control let:attrs>
 			<Form.Label>Name</Form.Label>
-			<Form.Input required />
-			<Form.Description>
-				Just a short name for us to identify you.
-			</Form.Description>
-			<Form.Validation />
-		</Form.Item>
+			<Input {...attrs} bind:value={$formData.name} required />
+		</Form.Control>
+		<Form.Description>
+			Just a short name for us to identify you.
+		</Form.Description>
+		<Form.FieldErrors />
 	</Form.Field>
-	<Form.Field {config} name="files">
-		<Form.Item>
+	<Form.Field {form} name="files">
+		<Form.Control let:attrs>
 			<Form.Label>Files</Form.Label>
-			<Form.Input type="file" multiple required />
-			<Form.Description>
-				Must not exceed 50MB. Preferably in PDF format.
-			</Form.Description>
-			<Form.Validation />
-		</Form.Item>
+			<Input
+				{...attrs}
+				on:input={(e) =>
+					($formData.files = Array.from(e.currentTarget.files ?? []))}
+				type="file"
+				multiple
+				required
+			/>
+		</Form.Control>
+		<Form.Description>
+			Must not exceed 50MB. Preferably in PDF format.
+		</Form.Description>
+		<Form.FieldErrors />
 	</Form.Field>
 	<Form.Button class="mt-4">Submit</Form.Button>
-</Form.Root>
+</form>
 
 <Dialog.Root bind:open={dialogOpen}>
 	<Dialog.Content class="bg-green-300">

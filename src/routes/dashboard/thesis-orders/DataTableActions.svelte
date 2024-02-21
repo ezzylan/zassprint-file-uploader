@@ -119,11 +119,7 @@
 		<Dialog.Content>
 			<Dialog.Header>
 				<Dialog.Title>
-					<h3
-						class="scroll-m-20 text-2xl font-semibold tracking-tight"
-					>
-						{customerDetails.name}
-					</h3>
+					<h3>{customerDetails.name}</h3>
 				</Dialog.Title>
 			</Dialog.Header>
 
