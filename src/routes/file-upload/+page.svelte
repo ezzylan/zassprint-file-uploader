@@ -6,17 +6,23 @@
 	import * as Form from "$lib/components/ui/form";
 	import { Input } from "$lib/components/ui/input";
 
+	import { Loader2 } from "lucide-svelte";
 	import { toast } from "svelte-sonner";
 	import { superForm } from "sveltekit-superforms";
 	import { zodClient } from "sveltekit-superforms/adapters";
 	import { fileUploadFormSchema } from "./schema";
 
+	let formSubmitting = false,
+		dialogOpen = false;
+
 	const form = superForm(data.form, {
 		validators: zodClient(fileUploadFormSchema),
 		onSubmit() {
-			toast.loading("Submitting...");
+			formSubmitting = true;
 		},
 		onUpdated({ form }) {
+			formSubmitting = false;
+
 			if (form.valid) {
 				dialogOpen = true;
 			} else {
@@ -26,7 +32,6 @@
 	});
 
 	const { form: formData, enhance } = form;
-	let dialogOpen = false;
 </script>
 
 <h2>Upload your files here</h2>
@@ -59,7 +64,13 @@
 		</Form.Description>
 		<Form.FieldErrors />
 	</Form.Field>
-	<Form.Button class="mt-4">Submit</Form.Button>
+	<Form.Button class="mt-4" disabled={formSubmitting}>
+		{#if formSubmitting}
+			<Loader2 class="mr-2 h-4 w-4 animate-spin" />Submitting...
+		{:else}
+			Submit
+		{/if}
+	</Form.Button>
 </form>
 
 <Dialog.Root bind:open={dialogOpen}>

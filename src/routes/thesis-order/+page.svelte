@@ -23,7 +23,7 @@
 		today,
 		type DateValue,
 	} from "@internationalized/date";
-	import { AlertCircle, CalendarIcon } from "lucide-svelte";
+	import { AlertCircle, CalendarIcon, Loader2 } from "lucide-svelte";
 	import { copyText } from "svelte-copy";
 	import { toast } from "svelte-sonner";
 	import { superForm, type FormResult } from "sveltekit-superforms";
@@ -34,9 +34,11 @@
 		validators: zodClient(thesisOrderFormSchema),
 		taintedMessage: null,
 		onSubmit: () => {
-			toast.loading("Submitting...");
+			formSubmitting = true;
 		},
 		onResult: (event) => {
+			formSubmitting = false;
+
 			const result = event.result as FormResult<ActionData>;
 			if (result.type === "success") {
 				dialogOpen = true;
@@ -89,7 +91,8 @@
 	let cdBurn = false,
 		addressDisabled = false,
 		dialogOpen = false,
-		orderNo: string;
+		orderNo: string,
+		formSubmitting = false;
 
 	$: cdDisabled = cdBurn ? "grid" : "hidden";
 </script>
@@ -509,7 +512,13 @@
 		</Form.Control>
 		<Form.FieldErrors />
 	</Form.Field>
-	<Form.Button class="mt-4">Submit</Form.Button>
+	<Form.Button class="mt-4" disabled={formSubmitting}>
+		{#if formSubmitting}
+			<Loader2 class="mr-2 h-4 w-4 animate-spin" />Submitting...
+		{:else}
+			Submit
+		{/if}
+	</Form.Button>
 </form>
 
 <AlertDialog.Root bind:open={dialogOpen}>
