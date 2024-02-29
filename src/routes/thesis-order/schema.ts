@@ -30,11 +30,11 @@ export const thesisOrderFormSchema = z.object({
 	cdCopies: z.coerce.number().int().nonnegative().nullable(),
 	collectionDate: z
 		.string()
-		.refine((v) => v, { message: "A collection date is required." }),
+		.refine((v) => v, { message: "Please select a collection date." }),
 	collectionMethod: z.string({
 		required_error: "Please select a collection method",
 	}),
-	address: z.string().nullable(),
+	address: z.string(),
 });
 
 export type FormSchema = typeof thesisOrderFormSchema;

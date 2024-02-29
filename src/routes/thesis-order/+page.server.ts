@@ -19,16 +19,12 @@ export const load: PageServerLoad = async () => {
 	};
 };
 
-const uploadFile = async (
-	file: File,
-	form: SuperValidated<Infer<FormSchema>>
-) => {
+const uploadFile = async (file: File) => {
 	const { data, error } = await supabase.storage
 		.from("thesis-files")
 		.upload(file.name, file);
 
-	if (error) return setError(form, "thesisFile", error.message);
-	return getPublicUrl(data.path);
+	return error ?? getPublicUrl(data.path);
 };
 
 const getPublicUrl = (fileName: string) => {
@@ -64,11 +60,9 @@ const toTitleCase = (str: string) => {
 
 const insertDatabase = async (
 	form: SuperValidated<Infer<FormSchema>>,
+	thesisFileUrl: string | null,
 	orderNo: string
 ) => {
-	const thesisFile = form.data.thesisFile as File;
-	const thesisFileUrl = (await uploadFile(thesisFile, form)) as string;
-
 	await supabase.from("thesis-orders").insert({
 		name: toTitleCase(form.data.name),
 		phone_num: form.data.phoneNum,
@@ -87,10 +81,7 @@ const insertDatabase = async (
 		cd_copies: form.data.cdBurn ? form.data.cdCopies : null,
 		collection_date: form.data.collectionDate,
 		collection_method: form.data.collectionMethod,
-		address:
-			form.data.collectionMethod === "Delivery"
-				? form.data.address
-				: null,
+		address: form.data.address,
 		order_no: orderNo,
 	});
 };
@@ -117,9 +108,20 @@ export const actions: Actions = {
 		const form = await superValidate(request, zod(thesisOrderFormSchema));
 		if (!form.valid) return fail(400, withFiles({ form }));
 
+		const thesisFile = form.data.thesisFile;
+		let thesisFileUrl = null;
+
+		if (thesisFile) {
+			thesisFileUrl = await uploadFile(thesisFile);
+
+			if (typeof thesisFileUrl !== "string") {
+				return setError(form, "thesisFile", thesisFileUrl.message);
+			}
+		}
+
 		const orderNo = await countExistingOrders();
 		try {
-			await insertDatabase(form, orderNo);
+			await insertDatabase(form, thesisFileUrl, orderNo);
 			await sendTeleBotAlert(orderNo, form.data.name);
 		} catch (error) {
 			fail(400, withFiles({ form }));

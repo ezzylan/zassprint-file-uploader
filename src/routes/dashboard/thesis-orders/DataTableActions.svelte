@@ -5,16 +5,16 @@
 	import * as Dialog from "$lib/components/ui/dialog";
 	import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
 	import { Separator } from "$lib/components/ui/separator";
+	import type { SupabaseClient } from "@supabase/supabase-js";
 	import { MoreHorizontal } from "lucide-svelte";
 
-	export let supabase: any;
-	export let id: string;
+	export let supabase: SupabaseClient, id: string;
 
 	const thesisOrdersTable = "thesis-orders";
-	let currStatus: string;
-	let thesisFilePath: string;
-	let dialogOpen = false;
-	let alertDialogOpen = false;
+	let currStatus: string,
+		thesisFilePath: string,
+		dialogOpen = false,
+		alertDialogOpen = false;
 
 	const getCustomerDetails = async () => {
 		const { data } = await supabase
@@ -25,9 +25,12 @@
 		if (data) {
 			currStatus = data[0].status;
 			const thesisFileUrl = data[0].thesis_file_url;
-			thesisFilePath = decodeURIComponent(
-				new URL(thesisFileUrl).pathname.split("/").pop()
-			);
+
+			if (thesisFileUrl) {
+				thesisFilePath = decodeURIComponent(
+					new URL(thesisFileUrl).pathname.split("/").pop()
+				);
+			}
 
 			return data[0];
 		}

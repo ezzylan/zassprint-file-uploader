@@ -7,7 +7,7 @@ const getThesisOrders = async () => {
 		.select()
 		.order("order_no", { ascending: false });
 
-	if (data) return data;
+	return data ?? [];
 };
 
 export const load: PageServerLoad = async () => {

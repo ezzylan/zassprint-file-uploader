@@ -23,7 +23,7 @@
 		today,
 		type DateValue,
 	} from "@internationalized/date";
-	import { AlertCircle, CalendarIcon, Loader2 } from "lucide-svelte";
+	import { AlertCircle, CalendarIcon, Info, Loader2 } from "lucide-svelte";
 	import { copyText } from "svelte-copy";
 	import { toast } from "svelte-sonner";
 	import { superForm, type FormResult } from "sveltekit-superforms";
@@ -38,8 +38,8 @@
 		},
 		onResult: (event) => {
 			formSubmitting = false;
-
 			const result = event.result as FormResult<ActionData>;
+
 			if (result.type === "success") {
 				dialogOpen = true;
 				orderNo = result.data?.orderNo as string;
@@ -89,7 +89,6 @@
 	let placeholder: DateValue = today(getLocalTimeZone()).add({ days: 2 });
 
 	let cdBurn = false,
-		addressDisabled = false,
 		dialogOpen = false,
 		orderNo: string,
 		formSubmitting = false;
@@ -348,10 +347,19 @@
 						($formData.thesisFile =
 							e.currentTarget.files?.item(0) ?? null)}
 					type="file"
-					required
 				/>
 			</Form.Control>
-			<Form.Description>In PDF format only.</Form.Description>
+			<Form.Description>
+				Must not exceed 50MB. In PDF format only.
+				<Popover.Root>
+					<Popover.Trigger><Info size="15" /></Popover.Trigger>
+					<Popover.Content>
+						<p class="text-sm text-muted-foreground">
+							Send your file to our staff if exceed 50MB.
+						</p>
+					</Popover.Content>
+				</Popover.Root>
+			</Form.Description>
 			<Form.FieldErrors />
 		</Form.Field>
 	</div>
@@ -476,13 +484,11 @@
 					onSelectedChange={(v) => {
 						if (v) {
 							$formData.collectionMethod = v.value;
-							addressDisabled =
-								v.value === "Pick Up" ? true : false;
 						}
 					}}
 				>
 					<Select.Trigger {...attrs}>
-						<Select.Value placeholder="Select thesis type" />
+						<Select.Value placeholder="Select collection method" />
 					</Select.Trigger>
 					<Select.Content>
 						<Select.Item value="Delivery">Delivery</Select.Item>
@@ -504,10 +510,10 @@
 			<Form.Label>Address</Form.Label>
 			<Textarea
 				{...attrs}
-				placeholder="Write your full address here..."
+				placeholder="Write your delivery/pickup address here..."
 				class="resize-none"
 				bind:value={$formData.address}
-				disabled={addressDisabled}
+				required
 			/>
 		</Form.Control>
 		<Form.FieldErrors />
