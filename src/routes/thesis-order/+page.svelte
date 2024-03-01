@@ -89,6 +89,7 @@
 	let placeholder: DateValue = today(getLocalTimeZone()).add({ days: 2 });
 
 	let cdBurn = false,
+		addressDisabled = false,
 		dialogOpen = false,
 		orderNo: string,
 		formSubmitting = false;
@@ -484,6 +485,11 @@
 					onSelectedChange={(v) => {
 						if (v) {
 							$formData.collectionMethod = v.value;
+							addressDisabled =
+								v.value ===
+								"Pick Up (Partnership Shop at Serdang)"
+									? true
+									: false;
 						}
 					}}
 				>
@@ -492,7 +498,11 @@
 					</Select.Trigger>
 					<Select.Content>
 						<Select.Item value="Delivery">Delivery</Select.Item>
-						<Select.Item value="Pick Up">Pick Up</Select.Item>
+						<Select.Item
+							value="Pick Up (Partnership Shop at Serdang)"
+						>
+							Pick Up (Partnership Shop at Serdang)
+						</Select.Item>
 					</Select.Content>
 				</Select.Root>
 				<input
@@ -513,7 +523,7 @@
 				placeholder="Write your delivery/pickup address here..."
 				class="resize-none"
 				bind:value={$formData.address}
-				required
+				disabled={addressDisabled}
 			/>
 		</Form.Control>
 		<Form.FieldErrors />

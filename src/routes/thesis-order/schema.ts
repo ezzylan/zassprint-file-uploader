@@ -3,12 +3,8 @@ import { z } from "zod";
 export const thesisOrderFormSchema = z.object({
 	name: z.string(),
 	phoneNum: z.string().min(10),
-	thesisType: z.string({
-		required_error: "Please select a thesis type",
-	}),
-	coverColor: z.string({
-		required_error: "Please select a cover color",
-	}),
+	thesisType: z.string({ required_error: "Please select a thesis type" }),
+	coverColor: z.string({ required_error: "Please select a cover color" }),
 	thesisTitle: z.string(),
 	faculty: z.string(),
 	year: z.string().length(4),
@@ -23,9 +19,7 @@ export const thesisOrderFormSchema = z.object({
 		.nullable(),
 	cdBurn: z.boolean().default(false),
 	cdLabel: z
-		.string({
-			required_error: "Please select a CD label",
-		})
+		.string({ required_error: "Please select a CD label" })
 		.nullable(),
 	cdCopies: z.coerce.number().int().nonnegative().nullable(),
 	collectionDate: z
@@ -34,7 +28,7 @@ export const thesisOrderFormSchema = z.object({
 	collectionMethod: z.string({
 		required_error: "Please select a collection method",
 	}),
-	address: z.string(),
+	address: z.string().nullable(),
 });
 
 export type FormSchema = typeof thesisOrderFormSchema;

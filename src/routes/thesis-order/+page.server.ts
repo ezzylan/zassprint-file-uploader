@@ -81,7 +81,10 @@ const insertDatabase = async (
 		cd_copies: form.data.cdBurn ? form.data.cdCopies : null,
 		collection_date: form.data.collectionDate,
 		collection_method: form.data.collectionMethod,
-		address: form.data.address,
+		address:
+			form.data.collectionMethod === "Delivery"
+				? form.data.address
+				: null,
 		order_no: orderNo,
 	});
 };
