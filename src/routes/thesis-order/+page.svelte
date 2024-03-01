@@ -338,7 +338,7 @@
 			</Form.Control>
 			<Form.FieldErrors />
 		</Form.Field>
-		<Form.Field {form} name="thesisFile">
+		<!-- <Form.Field {form} name="thesisFile">
 			<Form.Control let:attrs>
 				<Form.Label>Upload Your Thesis File Here</Form.Label>
 				<Input
@@ -362,7 +362,7 @@
 				</Popover.Root>
 			</Form.Description>
 			<Form.FieldErrors />
-		</Form.Field>
+		</Form.Field> -->
 	</div>
 
 	<Separator class="my-6" />
@@ -520,7 +520,7 @@
 			<Form.Label>Address</Form.Label>
 			<Textarea
 				{...attrs}
-				placeholder="Write your delivery/pickup address here..."
+				placeholder="Write your delivery address here..."
 				class="resize-none"
 				bind:value={$formData.address}
 				disabled={addressDisabled}
