@@ -14,7 +14,7 @@ export const thesisOrderFormSchema = z.object({
 	blackWhitePages: z.coerce.number().int().nonnegative(),
 	copies: z.coerce.number().int().positive().default(1),
 	thesisFile: z
-		.custom<File>((f) => f instanceof File, "Please upload a file.")
+		.instanceof(File, { message: "Please upload a file." })
 		.refine((f) => f.size < 52428800, "Max 50 MB upload size.")
 		.nullable(),
 	cdBurn: z.boolean().default(false),

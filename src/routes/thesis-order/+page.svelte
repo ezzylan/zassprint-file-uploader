@@ -344,9 +344,7 @@
 				<Input
 					{...attrs}
 					accept="application/pdf"
-					on:input={(e) =>
-						($formData.thesisFile =
-							e.currentTarget.files?.item(0) ?? null)}
+					on:input={(e) => ($formData.thesisFile = e.currentTarget.files?.item(0) as File)}
 					type="file"
 				/>
 			</Form.Control>

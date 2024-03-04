@@ -26,7 +26,7 @@ export const actions: Actions = {
 				.from("kps-files")
 				.upload(`${form.data.name}/${file.name}`, file);
 
-			if (error) return setError(form, "files", error.message);
+			if (error) return setError(form, "files._errors", error.message);
 		}
 
 		return withFiles({ form });
