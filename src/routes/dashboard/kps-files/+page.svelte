@@ -69,13 +69,17 @@
 					<Card.Header
 						class="flex flex-row justify-between items-center"
 					>
-						<Card.Title class="truncate">{customer.name}</Card.Title
-						>
-						<Popover.Root>
-							<Popover.Trigger><Info size="20" /></Popover.Trigger
-							>
-							<Popover.Content>{customer.notes}</Popover.Content>
-						</Popover.Root>
+						<Card.Title>{customer.name}</Card.Title>
+						{#if customer.notes}
+							<Popover.Root>
+								<Popover.Trigger>
+									<Info size="20" />
+								</Popover.Trigger>
+								<Popover.Content>
+									{customer.notes}
+								</Popover.Content>
+							</Popover.Root>
+						{/if}
 					</Card.Header>
 					<Card.Content class="flex flex-col gap-4">
 						{@const f = kpsFiles.filter(

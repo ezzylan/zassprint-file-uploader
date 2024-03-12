@@ -5,13 +5,13 @@
 	import * as Dialog from "$lib/components/ui/dialog";
 	import * as Form from "$lib/components/ui/form";
 	import { Input } from "$lib/components/ui/input";
+	import { Textarea } from "$lib/components/ui/textarea";
 
 	import { Loader2 } from "lucide-svelte";
 	import { toast } from "svelte-sonner";
 	import { superForm } from "sveltekit-superforms";
 	import { zodClient } from "sveltekit-superforms/adapters";
 	import { fileUploadFormSchema } from "./schema";
-	import { Textarea } from "$lib/components/ui/textarea";
 
 	let formSubmitting = false,
 		dialogOpen = false;
@@ -74,7 +74,10 @@
 				class="resize-none"
 			/>
 		</Form.Control>
-		<Form.Description>Add any additional notes here.</Form.Description>
+		<Form.Description>
+			Add any additional notes here. (number of copies, black/white or
+			color, etc.)
+		</Form.Description>
 		<Form.FieldErrors />
 	</Form.Field>
 	<Form.Button class="mt-4" disabled={formSubmitting}>
