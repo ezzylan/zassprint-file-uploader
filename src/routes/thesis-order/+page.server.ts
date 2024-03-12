@@ -37,7 +37,7 @@ const getPublicUrl = (fileName: string) => {
 
 const countExistingOrders = async () => {
 	const { data } = await supabase
-		.from("thesis-orders")
+		.from("thesis_orders")
 		.select("order_no")
 		.order("order_no", { ascending: true })
 		.gte("created_at", `${dayjs().format("YYYY-MM")}-01`)
@@ -63,7 +63,7 @@ const insertDatabase = async (
 	thesisFileUrl: string | null,
 	orderNo: string
 ) => {
-	await supabase.from("thesis-orders").insert({
+	await supabase.from("thesis_orders").insert({
 		name: toTitleCase(form.data.name),
 		phone_num: form.data.phoneNum,
 		matrix_num: form.data.matrixNum,
@@ -127,7 +127,7 @@ export const actions: Actions = {
 			await insertDatabase(form, thesisFileUrl, orderNo);
 			await sendTeleBotAlert(orderNo, form.data.name);
 		} catch (error) {
-			fail(400, withFiles({ form }));
+			return fail(400, withFiles({ form }));
 		}
 
 		return withFiles({ form, orderNo });

@@ -6,6 +6,7 @@ export const fileUploadFormSchema = z.object({
 		.instanceof(File, { message: "Please upload a file." })
 		.refine((f) => f.size < 52428800, "Max 50 MB upload size.")
 		.array(),
+	notes: z.string().nullable(),
 });
 
 export type FormSchema = typeof fileUploadFormSchema;

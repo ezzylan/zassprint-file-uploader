@@ -21,6 +21,11 @@ export const actions: Actions = {
 		const form = await superValidate(request, zod(fileUploadFormSchema));
 		if (!form.valid) return fail(400, withFiles({ form }));
 
+		const { error } = await supabase
+			.from("file_uploads")
+			.insert({ name: form.data.name, notes: form.data.notes });
+		if (error) return fail(400, withFiles({ form }));
+
 		for (const file of form.data.files) {
 			const { error } = await supabase.storage
 				.from("kps-files")

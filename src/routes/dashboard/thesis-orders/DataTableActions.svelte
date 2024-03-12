@@ -10,7 +10,7 @@
 
 	export let supabase: SupabaseClient, id: string;
 
-	const thesisOrdersTable = "thesis-orders";
+	const thesisOrdersTable = "thesis_orders";
 	let currStatus: string,
 		thesisFilePath: string,
 		dialogOpen = false,

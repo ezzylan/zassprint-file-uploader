@@ -5,194 +5,134 @@
 	import { Button, buttonVariants } from "$lib/components/ui/button";
 	import * as Card from "$lib/components/ui/card";
 	import * as Dialog from "$lib/components/ui/dialog";
+	import { Label } from "$lib/components/ui/label";
+	import * as Popover from "$lib/components/ui/popover";
+	import { Skeleton } from "$lib/components/ui/skeleton";
+	import { Switch } from "$lib/components/ui/switch";
 	import { supabase } from "$lib/supabaseClient";
-	import { Download, Eye } from "lucide-svelte";
+	import { Info } from "lucide-svelte";
+	import KpsFile from "./KpsFile.svelte";
 
-	let kpsFolders = data.kpsFolders;
-	let kpsFiles = data.kpsFiles;
+	let { kpsCustomers } = data,
+		kpsFiles: any[] = [],
+		deletedFiles: string[] = [];
 
-	const kpsFilesBucket = "kps-files";
-	let deletedFileNames = [] as string[];
+	data.getKpsFiles.then((files) => (kpsFiles = files));
 
-	const openFile = async (folderName: string, fileName: string) => {
-		const { data } = await supabase.storage
-			.from(kpsFilesBucket)
-			.getPublicUrl(`${folderName}/${fileName}`);
-
-		window.open(data.publicUrl);
-	};
-
-	const downloadFile = async (folderName: string, fileName: string) => {
-		const { data } = await supabase.storage
-			.from(kpsFilesBucket)
-			.getPublicUrl(`${folderName}/${fileName}`, { download: true });
-
-		window.open(data.publicUrl);
-	};
-
-	const removeFolder = async (folderName: string) => {
+	const deleteFiles = async (customerName: string) => {
 		const filesToBeDeleted = kpsFiles.filter(
-			(f: { folder: string }) => f.folder === folderName
+			(f: { customer: string }) => f.customer === customerName
 		);
 		filesToBeDeleted.map(
-			(file: { folder: string; file: { name: string } }) => {
-				deletedFileNames = [
-					...deletedFileNames,
-					`${file.folder}/${file.file.name}`,
+			(file: { customer: string; file: { name: string } }) => {
+				deletedFiles = [
+					...deletedFiles,
+					`${file.customer}/${file.file.name}`,
 				];
 			}
 		);
 
-		if (deletedFileNames.length > 0) {
-			await supabase.storage
-				.from(kpsFilesBucket)
-				.remove(deletedFileNames);
-		}
-		deletedFileNames = [];
+		await supabase.from("file_uploads").delete().eq("name", customerName);
+		await supabase.storage.from("kps-files").remove(deletedFiles);
 
+		deletedFiles = [];
 		kpsFiles = kpsFiles.filter(
-			(f: { folder: string }) => f.folder !== folderName
+			(f: { customer: string }) => f.customer !== customerName
 		);
-		kpsFolders = kpsFolders?.filter(
-			(folder: { name: string }) => folder.name !== folderName
+		kpsCustomers = kpsCustomers.filter(
+			(customer: { name: string }) => customer.name !== customerName
 		);
 	};
 </script>
 
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-	{#if kpsFolders && kpsFolders.length > 0}
-		{#each kpsFolders as folder}
+	{#await data.getKpsFiles}
+		{#each Array(3) as _}
 			<Card.Root>
 				<Card.Header>
-					<Card.Title class="truncate">{folder.name}</Card.Title>
+					<Skeleton class="h-5 w-40" />
 				</Card.Header>
 				<Card.Content class="flex flex-col gap-4">
-					{@const f = kpsFiles.filter(
-						(f) => f.folder === folder.name
-					)}
-					{#if f.length <= 3}
-						{#each f as file}
-							<div
-								class="flex justify-between items-center space-x-4 rounded-md border p-4"
-							>
-								<p
-									class="leading-7 [&:not(:first-child)]:mt-6 truncate"
-								>
-									{file.file.name}
-								</p>
-								<div class="flex gap-2">
-									<Button
-										variant="secondary"
-										on:click={() =>
-											downloadFile(
-												folder.name,
-												file.file.name
-											)}
-									>
-										<Download />
-									</Button>
-									<Button
-										on:click={() =>
-											openFile(
-												folder.name,
-												file.file.name
-											)}
-									>
-										<Eye />
-									</Button>
-								</div>
-							</div>
-						{/each}
-					{:else}
-						{#each f as file, i}
-							{#if i < 2}
-								<div
-									class="flex justify-between items-center space-x-4 rounded-md border p-4"
-								>
-									<p
-										class="leading-7 [&:not(:first-child)]:mt-6 truncate"
-									>
-										{file.file.name}
-									</p>
-									<div class="flex gap-2">
-										<Button
-											variant="secondary"
-											on:click={() =>
-												downloadFile(
-													folder.name,
-													file.file.name
-												)}
-										>
-											<Download />
-										</Button>
-										<Button
-											on:click={() =>
-												openFile(
-													folder.name,
-													file.file.name
-												)}
-										>
-											<Eye />
-										</Button>
-									</div>
-								</div>
-							{/if}
-						{/each}
-						<Dialog.Root>
-							<Dialog.Trigger
-								class={buttonVariants({ variant: "outline" })}
-							>
-								{f.length - 2} more files
-							</Dialog.Trigger>
-							<Dialog.Content>
-								{#each f as file, i}
-									{#if i >= 2}
-										<div
-											class="flex justify-between items-center space-x-4 rounded-md border p-4 max-w-[435px]"
-										>
-											<p
-												class="leading-7 [&:not(:first-child)]:mt-6 truncate"
-											>
-												{file.file.name}
-											</p>
-											<div class="flex gap-2">
-												<Button
-													variant="secondary"
-													on:click={() =>
-														downloadFile(
-															folder.name,
-															file.file.name
-														)}
-												>
-													<Download />
-												</Button>
-												<Button
-													on:click={() =>
-														openFile(
-															folder.name,
-															file.file.name
-														)}
-												>
-													<Eye />
-												</Button>
-											</div>
-										</div>
-									{/if}
-								{/each}
-							</Dialog.Content>
-						</Dialog.Root>
-					{/if}
+					{#each Array(2) as _}
+						<Skeleton class="h-[72px]" />
+					{/each}
 				</Card.Content>
 				<Card.Footer class="flex justify-end">
-					<Button
-						variant="destructive"
-						on:click={() => removeFolder(folder.name)}
-						>Delete All</Button
-					>
+					<Skeleton class="h-11 w-[105px] rounded-md" />
 				</Card.Footer>
 			</Card.Root>
 		{/each}
-	{:else}
-		<h4>No files available...</h4>
-	{/if}
+	{:then kpsFiles}
+		{#if kpsCustomers.length > 0}
+			{#each kpsCustomers as customer}
+				<Card.Root>
+					<Card.Header
+						class="flex flex-row justify-between items-center"
+					>
+						<Card.Title class="truncate">{customer.name}</Card.Title
+						>
+						<Popover.Root>
+							<Popover.Trigger><Info size="20" /></Popover.Trigger
+							>
+							<Popover.Content>{customer.notes}</Popover.Content>
+						</Popover.Root>
+					</Card.Header>
+					<Card.Content class="flex flex-col gap-4">
+						{@const f = kpsFiles.filter(
+							(f) => f.customer === customer.name
+						)}
+						{#if f.length <= 3}
+							{#each f as file}
+								<KpsFile {customer} {file} />
+							{/each}
+						{:else}
+							{#each f as file, i}
+								{#if i < 2}
+									<KpsFile {customer} {file} />
+								{/if}
+							{/each}
+							<Dialog.Root>
+								<Dialog.Trigger
+									class={buttonVariants({
+										variant: "outline",
+									})}
+								>
+									{f.length - 2} more files
+								</Dialog.Trigger>
+								<Dialog.Content>
+									{#each f as file, i}
+										{#if i >= 2}
+											<KpsFile {customer} {file} />
+										{/if}
+									{/each}
+								</Dialog.Content>
+							</Dialog.Root>
+						{/if}
+					</Card.Content>
+					<Card.Footer class="flex justify-between">
+						<div class="flex items-center space-x-2">
+							<Switch
+								id="printStatus"
+								checked={customer.print_status}
+								onCheckedChange={async (value) => {
+									await supabase
+										.from("file_uploads")
+										.update({ print_status: value })
+										.eq("name", customer.name);
+								}}
+							/>
+							<Label for="printStatus">Done</Label>
+						</div>
+						<Button
+							variant="destructive"
+							on:click={() => deleteFiles(customer.name)}
+							>Delete</Button
+						>
+					</Card.Footer>
+				</Card.Root>
+			{/each}
+		{:else}
+			<h4>No files available...</h4>
+		{/if}
+	{/await}
 </div>

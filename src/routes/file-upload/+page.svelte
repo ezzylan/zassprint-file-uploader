@@ -11,6 +11,7 @@
 	import { superForm } from "sveltekit-superforms";
 	import { zodClient } from "sveltekit-superforms/adapters";
 	import { fileUploadFormSchema } from "./schema";
+	import { Textarea } from "$lib/components/ui/textarea";
 
 	let formSubmitting = false,
 		dialogOpen = false;
@@ -62,6 +63,18 @@
 		<Form.Description>
 			Must not exceed 50MB. Preferably in PDF format.
 		</Form.Description>
+		<Form.FieldErrors />
+	</Form.Field>
+	<Form.Field {form} name="notes">
+		<Form.Control let:attrs>
+			<Form.Label>Notes</Form.Label>
+			<Textarea
+				{...attrs}
+				bind:value={$formData.notes}
+				class="resize-none"
+			/>
+		</Form.Control>
+		<Form.Description>Add any additional notes here.</Form.Description>
 		<Form.FieldErrors />
 	</Form.Field>
 	<Form.Button class="mt-4" disabled={formSubmitting}>

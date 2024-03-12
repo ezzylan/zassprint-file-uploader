@@ -18,7 +18,7 @@ export const actions: Actions = {
 		if (!form.valid) return fail(400, { form });
 
 		const { data } = await supabase
-			.from("thesis-orders")
+			.from("thesis_orders")
 			.select("status")
 			.eq("order_no", form.data.orderNo);
 
