@@ -10,43 +10,37 @@
 
 	export let supabase: SupabaseClient, id: string;
 
-	const thesisOrdersTable = "thesis_orders";
-	let currStatus: string,
-		thesisFilePath: string,
-		dialogOpen = false,
+	const statusArr = [
+		"Pending",
+		"Confirmed",
+		"Printed",
+		"Delivered",
+		"Cancelled",
+	];
+
+	let dialogOpen = false,
 		alertDialogOpen = false;
 
 	const getCustomerDetails = async () => {
 		const { data } = await supabase
-			.from(thesisOrdersTable)
+			.from("thesis_orders")
 			.select()
 			.eq("id", id);
 
-		if (data) {
-			currStatus = data[0].status;
-			const thesisFileUrl = data[0].thesis_file_url;
-
-			if (thesisFileUrl) {
-				thesisFilePath = decodeURIComponent(
-					new URL(thesisFileUrl).pathname.split("/").pop()
-				);
-			}
-
-			return data[0];
-		}
+		return data ? data[0] : [];
 	};
 
 	const updateStatus = async (status: string) => {
 		await supabase
-			.from(thesisOrdersTable)
+			.from("thesis_orders")
 			.update({ status: status })
 			.eq("id", id);
+
 		location.reload();
 	};
 
 	const deleteOrder = async () => {
-		await supabase.storage.from("thesis-files").remove([thesisFilePath]);
-		await supabase.from(thesisOrdersTable).delete().eq("id", id);
+		await supabase.from("thesis_orders").delete().eq("id", id);
 		location.reload();
 	};
 </script>
@@ -68,23 +62,16 @@
 			<DropdownMenu.Group>
 				<DropdownMenu.Label>Status</DropdownMenu.Label>
 				<DropdownMenu.RadioGroup
-					bind:value={currStatus}
+					value={customerDetails.status}
 					onValueChange={(value) => {
 						if (value) updateStatus(value);
 					}}
 				>
-					<DropdownMenu.RadioItem value="pending">
-						Pending
-					</DropdownMenu.RadioItem>
-					<DropdownMenu.RadioItem value="confirmed">
-						Confirmed
-					</DropdownMenu.RadioItem>
-					<DropdownMenu.RadioItem value="printed">
-						Printed
-					</DropdownMenu.RadioItem>
-					<DropdownMenu.RadioItem value="delivered">
-						Delivered
-					</DropdownMenu.RadioItem>
+					{#each statusArr as status}
+						<DropdownMenu.RadioItem value={status}>
+							{status}
+						</DropdownMenu.RadioItem>
+					{/each}
 				</DropdownMenu.RadioGroup>
 			</DropdownMenu.Group>
 
@@ -92,20 +79,6 @@
 
 			<DropdownMenu.Item on:click={() => (dialogOpen = true)}>
 				View details
-			</DropdownMenu.Item>
-			<form id="receiptForm" action="/receipt">
-				<input
-					type="hidden"
-					name="order"
-					value={customerDetails.order_no}
-				/>
-			</form>
-			<DropdownMenu.Item
-				on:click={() => {
-					const form = document.getElementById("receiptForm");
-					form?.submit();
-				}}
-				>View receipt
 			</DropdownMenu.Item>
 
 			<DropdownMenu.Separator />

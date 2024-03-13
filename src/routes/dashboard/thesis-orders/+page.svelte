@@ -22,7 +22,7 @@
 	} from "svelte-headless-table/plugins";
 	import { readable } from "svelte/store";
 	import DataTableActions from "./DataTableActions.svelte";
-	import DataTableDownloadButton from "./DataTableDownloadButton.svelte";
+	import DataTableViewReceipt from "./DataTableViewReceipt.svelte";
 
 	const thesisOrders = data.thesisOrders;
 
@@ -45,11 +45,12 @@
 		table.column({ accessor: "name", header: "Name" }),
 		table.column({ accessor: "status", header: "Status" }),
 		table.column({
-			accessor: "thesis_file_url",
-			header: "Thesis File",
+			id: "receipt",
+			accessor: "order_no",
+			header: "Receipt",
 			cell: ({ value }) => {
-				return createRender(DataTableDownloadButton, {
-					thesis_file_url: value,
+				return createRender(DataTableViewReceipt, {
+					order_no: value,
 				});
 			},
 			plugins: {
@@ -130,18 +131,21 @@
 							{#each row.cells as cell (cell.id)}
 								<Subscribe attrs={cell.attrs()} let:attrs>
 									<Table.Cell {...attrs}>
-										<div class="ml-4">
-											{#if cell.id === "status"}
-												<div class="capitalize">
-													<Render
-														of={cell.render()}
-													/>
-												</div>
-											{:else if cell.id === "order_no"}
-												#<Render of={cell.render()} />
-											{:else}
+										<div
+											class={cell.id === "receipt"
+												? ""
+												: "ml-4"}
+										>
+											<div
+												class={cell.id === "status"
+													? "capitalize"
+													: ""}
+											>
+												{cell.id === "order_no"
+													? "#"
+													: ""}
 												<Render of={cell.render()} />
-											{/if}
+											</div>
 										</div>
 									</Table.Cell>
 								</Subscribe>

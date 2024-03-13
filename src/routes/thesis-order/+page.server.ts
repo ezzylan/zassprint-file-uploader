@@ -4,11 +4,7 @@ import { fail } from "@sveltejs/kit";
 import dayjs from "dayjs";
 import type { Infer, SuperValidated } from "sveltekit-superforms";
 import { zod } from "sveltekit-superforms/adapters";
-import {
-	setError,
-	superValidate,
-	withFiles,
-} from "sveltekit-superforms/server";
+import { superValidate } from "sveltekit-superforms/server";
 import type { Actions, PageServerLoad } from "./$types";
 import { thesisOrderFormSchema, type FormSchema } from "./schema";
 
@@ -19,21 +15,21 @@ export const load: PageServerLoad = async () => {
 	};
 };
 
-const uploadFile = async (file: File) => {
-	const { data, error } = await supabase.storage
-		.from("thesis-files")
-		.upload(file.name, file);
+// const uploadFile = async (file: File) => {
+// 	const { data, error } = await supabase.storage
+// 		.from("thesis-files")
+// 		.upload(file.name, file);
 
-	return error ?? getPublicUrl(data.path);
-};
+// 	return error ?? getPublicUrl(data.path);
+// };
 
-const getPublicUrl = (fileName: string) => {
-	const { data } = supabase.storage
-		.from("thesis-files")
-		.getPublicUrl(fileName, { download: true });
+// const getPublicUrl = (fileName: string) => {
+// 	const { data } = supabase.storage
+// 		.from("thesis-files")
+// 		.getPublicUrl(fileName, { download: true });
 
-	return data.publicUrl;
-};
+// 	return data.publicUrl;
+// };
 
 const countExistingOrders = async () => {
 	const { data } = await supabase
@@ -60,7 +56,6 @@ const toTitleCase = (str: string) => {
 
 const insertDatabase = async (
 	form: SuperValidated<Infer<FormSchema>>,
-	thesisFileUrl: string | null,
 	orderNo: string
 ) => {
 	await supabase.from("thesis_orders").insert({
@@ -76,7 +71,6 @@ const insertDatabase = async (
 		color_pages: form.data.colorPages,
 		black_white_pages: form.data.blackWhitePages,
 		copies: form.data.copies,
-		thesis_file_url: thesisFileUrl,
 		cd_label: form.data.cdBurn ? form.data.cdLabel : null,
 		cd_copies: form.data.cdBurn ? form.data.cdCopies : null,
 		collection_date: form.data.collectionDate,
@@ -94,7 +88,8 @@ const sendTeleBotAlert = async (orderNo: string, name: string) => {
 	bodyContent.append("chat_id", "@zassprintkps");
 	bodyContent.append(
 		"text",
-		`New thesis order received: #${orderNo} ${toTitleCase(name)}`
+		`New thesis order received: #${orderNo}
+		${toTitleCase(name)}`
 	);
 
 	await fetch(
@@ -109,27 +104,27 @@ const sendTeleBotAlert = async (orderNo: string, name: string) => {
 export const actions: Actions = {
 	default: async ({ request }) => {
 		const form = await superValidate(request, zod(thesisOrderFormSchema));
-		if (!form.valid) return fail(400, withFiles({ form }));
+		if (!form.valid) return fail(400, { form });
 
-		const thesisFile = form.data.thesisFile;
-		let thesisFileUrl = null;
+		// const thesisFile = form.data.thesisFile;
+		// let thesisFileUrl = null;
 
-		if (thesisFile) {
-			thesisFileUrl = await uploadFile(thesisFile);
+		// if (thesisFile) {
+		// 	thesisFileUrl = await uploadFile(thesisFile);
 
-			if (typeof thesisFileUrl !== "string") {
-				return setError(form, "thesisFile", thesisFileUrl.message);
-			}
-		}
+		// 	if (typeof thesisFileUrl !== "string") {
+		// 		return setError(form, "thesisFile", thesisFileUrl.message);
+		// 	}
+		// }
 
 		const orderNo = await countExistingOrders();
 		try {
-			await insertDatabase(form, thesisFileUrl, orderNo);
+			await insertDatabase(form, orderNo);
 			await sendTeleBotAlert(orderNo, form.data.name);
 		} catch (error) {
-			return fail(400, withFiles({ form }));
+			return fail(400, { form });
 		}
 
-		return withFiles({ form, orderNo });
+		return { form, orderNo };
 	},
 };
