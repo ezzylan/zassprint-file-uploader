@@ -3,7 +3,11 @@
 	import { supabase } from "$lib/supabaseClient";
 	import { Download, Eye } from "lucide-svelte";
 
-	export let customer: any, file: any;
+	export let customer: any,
+		file: any,
+		isHiddenFile = false;
+
+	const width = isHiddenFile ? "max-w-[450px]" : "";
 
 	const openFile = async (folderName: string, fileName: string) => {
 		const { data } = await supabase.storage
@@ -22,7 +26,9 @@
 	};
 </script>
 
-<div class="flex justify-between items-center space-x-4 rounded-md border p-4">
+<div
+	class={`flex justify-between items-center space-x-4 rounded-md border p-4 ${width}`}
+>
 	<p class="truncate">{file.file.name}</p>
 
 	<div class="flex gap-2">

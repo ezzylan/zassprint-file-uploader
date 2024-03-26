@@ -106,7 +106,11 @@
 								<Dialog.Content>
 									{#each f as file, i}
 										{#if i >= 2}
-											<KpsFile {customer} {file} />
+											<KpsFile
+												{customer}
+												{file}
+												isHiddenFile={true}
+											/>
 										{/if}
 									{/each}
 								</Dialog.Content>
