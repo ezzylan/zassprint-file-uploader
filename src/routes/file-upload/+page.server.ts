@@ -21,9 +21,20 @@ export const actions: Actions = {
 		const form = await superValidate(request, zod(fileUploadFormSchema));
 		if (!form.valid) return fail(400, withFiles({ form }));
 
+		const { data } = await supabase
+			.from("file_uploads")
+			.select("notes")
+			.eq("name", form.data.name);
+
+		let notes =
+			data?.length === 0
+				? form.data.notes
+				: `${data![0].notes}, ${form.data.notes}`;
+
 		const { error } = await supabase
 			.from("file_uploads")
-			.insert({ name: form.data.name, notes: form.data.notes });
+			.upsert({ name: form.data.name, notes }, { onConflict: "name" });
+
 		if (error) return fail(400, withFiles({ form }));
 
 		for (const file of form.data.files) {

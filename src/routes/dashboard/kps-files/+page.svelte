@@ -10,7 +10,7 @@
 	import { Skeleton } from "$lib/components/ui/skeleton";
 	import { Switch } from "$lib/components/ui/switch";
 	import { supabase } from "$lib/supabaseClient";
-	import { Info } from "lucide-svelte";
+	import { NotepadText } from "lucide-svelte";
 	import KpsFile from "./KpsFile.svelte";
 
 	let { kpsCustomers } = data,
@@ -73,7 +73,7 @@
 						{#if customer.notes}
 							<Popover.Root>
 								<Popover.Trigger>
-									<Info size="20" />
+									<NotepadText size="20" />
 								</Popover.Trigger>
 								<Popover.Content>
 									{customer.notes}
