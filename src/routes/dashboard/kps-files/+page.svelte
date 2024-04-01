@@ -6,11 +6,9 @@
 	import * as Card from "$lib/components/ui/card";
 	import * as Dialog from "$lib/components/ui/dialog";
 	import { Label } from "$lib/components/ui/label";
-	import * as Popover from "$lib/components/ui/popover";
 	import { Skeleton } from "$lib/components/ui/skeleton";
 	import { Switch } from "$lib/components/ui/switch";
 	import { supabase } from "$lib/supabaseClient";
-	import { NotepadText } from "lucide-svelte";
 	import KpsFile from "./KpsFile.svelte";
 
 	let { kpsCustomers } = data,
@@ -70,16 +68,6 @@
 						class="flex flex-row justify-between items-center"
 					>
 						<Card.Title>{customer.name}</Card.Title>
-						{#if customer.notes}
-							<Popover.Root>
-								<Popover.Trigger>
-									<NotepadText size="20" />
-								</Popover.Trigger>
-								<Popover.Content>
-									{customer.notes}
-								</Popover.Content>
-							</Popover.Root>
-						{/if}
 					</Card.Header>
 					<Card.Content class="flex flex-col gap-4">
 						{@const f = kpsFiles.filter(

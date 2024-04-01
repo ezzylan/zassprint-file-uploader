@@ -1,11 +1,6 @@
 import { supabase } from "$lib/supabaseClient";
-import { fail } from "@sveltejs/kit";
+import { fail, setError, superValidate, withFiles } from "sveltekit-superforms";
 import { zod } from "sveltekit-superforms/adapters";
-import {
-	setError,
-	superValidate,
-	withFiles,
-} from "sveltekit-superforms/server";
 import type { Actions, PageServerLoad } from "./$types";
 import { fileUploadFormSchema } from "./schema";
 
@@ -16,10 +11,10 @@ export const load: PageServerLoad = async () => {
 	};
 };
 
-export const actions: Actions = {
+export const actions = {
 	default: async ({ request }) => {
 		const form = await superValidate(request, zod(fileUploadFormSchema));
-		if (!form.valid) return fail(400, withFiles({ form }));
+		if (!form.valid) return fail(400, { form });
 
 		const { data } = await supabase
 			.from("file_uploads")
@@ -47,4 +42,4 @@ export const actions: Actions = {
 
 		return withFiles({ form });
 	},
-};
+} satisfies Actions;

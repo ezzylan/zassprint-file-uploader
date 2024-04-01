@@ -6,7 +6,7 @@
 	import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
 	import { Separator } from "$lib/components/ui/separator";
 	import type { SupabaseClient } from "@supabase/supabase-js";
-	import { MoreHorizontal } from "lucide-svelte";
+	import { Ellipsis } from "lucide-svelte";
 
 	export let supabase: SupabaseClient, id: string;
 
@@ -55,7 +55,7 @@
 				class="relative w-8 h-8 p-0"
 			>
 				<span class="sr-only">Open menu</span>
-				<MoreHorizontal class="w-4 h-4" />
+				<Ellipsis class="w-4 h-4" />
 			</Button>
 		</DropdownMenu.Trigger>
 		<DropdownMenu.Content>
