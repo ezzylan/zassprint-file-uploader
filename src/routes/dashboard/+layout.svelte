@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { goto } from "$app/navigation";
+	// import { goto } from "$app/navigation";
 	import { page } from "$app/stores";
 
 	import * as Alert from "$lib/components/ui/alert";
-	import { Button } from "$lib/components/ui/button";
-	import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
-	import * as Tabs from "$lib/components/ui/tabs";
+	// import { Button } from "$lib/components/ui/button";
+	// import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
+	// import * as Tabs from "$lib/components/ui/tabs";
 	import { AlertCircle, ChevronDown } from "lucide-svelte";
 
 	const currRoute = $page.route.id;
@@ -13,9 +13,9 @@
 </script>
 
 <div class="flex justify-between">
-	<h2>Dashboard</h2>
+	<h2>Thesis Orders Dashboard</h2>
 
-	<Tabs.Root
+	<!-- <Tabs.Root
 		bind:value={currTab}
 		onValueChange={(val) => goto(`/dashboard/${val}`)}
 		class="hidden sm:block"
@@ -25,7 +25,7 @@
 			<Tabs.Trigger value="thesis-orders">Thesis Orders</Tabs.Trigger>
 		</Tabs.List>
 	</Tabs.Root>
-	
+
 	<DropdownMenu.Root>
 		<DropdownMenu.Trigger asChild let:builder>
 			<Button variant="outline" builders={[builder]} class="sm:hidden">
@@ -45,7 +45,7 @@
 				</DropdownMenu.RadioItem>
 			</DropdownMenu.RadioGroup>
 		</DropdownMenu.Content>
-	</DropdownMenu.Root>
+	</DropdownMenu.Root> -->
 </div>
 
 <Alert.Root class="mb-8 bg-sky-300">
