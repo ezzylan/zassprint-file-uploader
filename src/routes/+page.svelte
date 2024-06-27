@@ -32,12 +32,12 @@
 <h2>What do you want to do?</h2>
 
 <div class="flex flex-col md:flex-row justify-center gap-3 items-center">
-	<Button variant="outline" href="/file-upload" class="size-60 p-10">
+	<!-- <Button variant="outline" href="/file-upload" class="size-60 p-10">
 		<div class="flex flex-col gap-3 items-center">
 			<FileUp class="size-20" />
 			<h4>KPS File Uploader</h4>
 		</div>
-	</Button>
+	</Button> -->
 	<Button variant="outline" href="/thesis-order" class="size-60 p-10">
 		<div class="flex flex-col gap-3 items-center">
 			<ClipboardType class="size-20" />

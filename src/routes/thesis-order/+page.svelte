@@ -235,6 +235,7 @@
 						<Select.Item value="Plastic Cover">
 							Plastic Cover
 						</Select.Item>
+						<Select.Item value="Other">Other</Select.Item>
 					</Select.Content>
 				</Select.Root>
 				<input
